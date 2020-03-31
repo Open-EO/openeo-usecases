@@ -1,7 +1,15 @@
-if (!require(devtools)) install.packages("devtools",dependencies=TRUE)
-devtools::install_github(repo="Open-EO/openeo-r-client", dependencies=TRUE)
-#
+if (!require(devtools)) {
+  install.packages("devtools",dependencies=TRUE)
+  library(devtools)
+}
+install_github(repo="Open-EO/openeo-r-client@develop",dependencies=TRUE)
 library(openeo)
+
+
+
+
+
+
 
 # enter valid credentials
 euracHost = "https://openeo.eurac.edu"
@@ -34,3 +42,4 @@ udfCode = readChar(udfName, file.info(udfName)$size)
 # send_udf(s2, udfCode, host = "", port = NULL, language = "R", debug = FALSE, download_info = FALSE)
 
 p$run_udf(data = s2, udf = udfCode, runtime = "R")
+
