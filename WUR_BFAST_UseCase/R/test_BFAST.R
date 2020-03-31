@@ -6,11 +6,6 @@ install_github(repo="Open-EO/openeo-r-client@develop",dependencies=TRUE)
 library(openeo)
 
 
-
-
-
-
-
 # enter valid credentials
 euracHost = "https://openeo.eurac.edu"
 user = "guest"
@@ -42,4 +37,22 @@ udfCode = readChar(udfName, file.info(udfName)$size)
 # send_udf(s2, udfCode, host = "", port = NULL, language = "R", debug = FALSE, download_info = FALSE)
 
 p$run_udf(data = s2, udf = udfCode, runtime = "R")
+
+
+describe_process(con = eurac,"save_result")
+# test 2 (the simple one)
+udfCode2 = quote({data2 = data*(2); data2})
+graph_test2 = p$run_udf(data = s2, udf = udfCode2, runtime = "R")
+list_file_types()
+graph_test2 = p$save_result(graph_test2, format="GTiff")
+# validate the graph at the client:
+as(graph_test2, "Graph")$validate()
+# validate at server
+validate_process_graph(graph=graph_test2)
+#
+compute_result(graph=as(graph_test2, "Graph"), format="GTiff", output_file = 'results_test2.tiff')
+
+
+
+
 
