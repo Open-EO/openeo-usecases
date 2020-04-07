@@ -38,20 +38,24 @@ backscatter = st_as_stars(backscatter_prox)
 vv = backscatter %>% dplyr::slice(band, 2)
 vh = backscatter %>% dplyr::slice(band, 1)
 
-# create reference images vv vh
+# create reference images vv vh - incorrect: 
+# mean of dec/jan/feb -> dry snow conditions
+# or select image where variance is the lowest
+# or aggregate to temporal maximum = dry condition
 vv_mean = stars::st_apply(X = vv, MARGIN = c("x", "y"), FUN = mean, na.rm = T)
 vh_mean = stars::st_apply(X = vh, MARGIN = c("x", "y"), FUN = mean, na.rm = T)
 # plot(vv_mean)
 # plot(vh_mean)
 
 # normalize vv and vh with reference images
+# since not converted to log -> Differnece
 # s1a_vv_ref1 = s1a_vv %>% slice(time, 1)/s1a_vv_mean
 vv_ratio = stars::st_apply(X = vv, MARGIN = c("time"), FUN = function(x){
-  x/vv_mean$mean
+  x-vv_mean$mean
 })
 
 vh_ratio = stars::st_apply(X = vh, MARGIN = c("time"), FUN = function(x){
-  x/vh_mean$mean
+  x-vh_mean$mean
 })
 
 # lia workflow -----------------------------------------------------------------
@@ -130,6 +134,7 @@ wet_snow = st_apply(rc, MARGIN = c("time"), FUN = function(x){
   #           x[1] < thr ~ 1)
 })
 plot(wet_snow) # kann das stimmen??? kaum wet snow
+plot(vh_mean)
 # nochmal checken dass vv und vh richtig assigned sind am anfang
 # zeitraum bis in sommer vergrößern
 # in mit stars konzept lösen... evtl stackoverflow fragen stellen
@@ -137,7 +142,7 @@ lapply(1:22, function(x)(
   table(wet_snow %>% slice(time, x))
 ))
 
-install.packages("bfast")
+
 # mask with lia
 
 # how to make sure that the time dimension stays 
