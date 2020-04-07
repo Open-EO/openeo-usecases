@@ -28,9 +28,6 @@ conn = connect(host = driver_url,
 
 
 # get some descriptions of eurac backend ---------------------------------------
-api_versions(url=driver_url)
-list_udf_runtimes(conn)$R
-
 #conn %>% openeo::list_collections()
 conn %>% describe_collection("Backscatter_Sentinel1_Track015")
 conn %>% describe_collection("LIA_Sentinel1_Track015")
@@ -39,8 +36,8 @@ conn %>% describe_collection("LIA_Sentinel1_Track015")
 conn %>% describe_process("filter_bands")
 conn %>% describe_process("reduce")
 
-process_viewer()
-collection_viewer()
+# process_viewer()
+# collection_viewer()
 
 # process graph ----------------------------------------------------------------
 # define an spatial extent

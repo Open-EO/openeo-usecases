@@ -43,18 +43,24 @@ s1a = p$load_collection(id = p$data$Backscatter_Sentinel1_Track015,
 vv = p$filter_bands(data = s1a, bands = "VV")
 
 # mean
-vv_mean = p$reduce(data = vv, dimension = "temporal", reducer = p$mean)
+#vv_mean = p$reduce(data = vv, dimension = "temporal", reducer = p$mean)
+vv_mean = p$reduce(data = vv, dimension = "temporal", reducer = function(x) {
+  p$mean(data = x)
+})
+
+conn %>% describe_process("reduce")
 
 # save result
-result = p$save_result(data = vv_mean, format = "GTIFF")
+result = p$save_result(data = vv, format = "NETCDF")
+result = p$save_result(data = vv_mean, format = "NETCDF")
 
 # look at process graph
 graph = as(result,"Graph")
 graph$validate()
 
 # compute result on backend
-done = compute_result(graph = graph, format="GTIFF", output_file = "test_usecase_wetsnow_r_pz.GTIFF")
-
+done = compute_result(graph = graph, format="NETCDF", output_file = "test_usecase_wetsnow_r_pz.ncdf")
+p$redu
 # get resultl back to r
 # get json back
 fin = fromJSON(done)
