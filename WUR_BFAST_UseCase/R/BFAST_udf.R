@@ -5,8 +5,8 @@ library(bfast)
 # Define the pixel-wise function
 SpatialBFM = function(pixels)
 {
-  lsts = ts(pixels, c(1981, 7), frequency=24)
-  bfastmonitor(lsts, 2010)$breakpoint
+  lsts = ts(pixels, c(2016, 33), frequency=40)
+  bfastmonitor(lsts, 2019, formula=response~trend)$breakpoint
 }
 StarsResult = st_apply(x, c("x", "y"), SpatialBFM, PROGRESS=TRUE)
 StarsResult
