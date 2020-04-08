@@ -42,7 +42,7 @@ udfCode = readChar(udfName, file.info(udfName)$size)
 
 test1 = p$run_udf(data = s2, udf = udfCode, runtime = "R")
 graph_test1 = p$save_result(test1, format="GTiff")
-compute_result(graph=graph_test1, format="GTiff", output_file = 'results_test1_bfast.tiff')
+compute_result(graph=graph_test1, format="GTiff", output_file = 'euracBackend_bfast_output.tif')
 
 
 
