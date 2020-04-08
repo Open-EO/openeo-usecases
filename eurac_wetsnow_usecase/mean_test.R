@@ -60,7 +60,7 @@ graph$validate()
 
 # compute result on backend
 done = compute_result(graph = graph, format="NETCDF", output_file = "test_usecase_wetsnow_r_pz.ncdf")
-p$redu
+
 # get resultl back to r
 # get json back
 fin = fromJSON(done)
@@ -70,6 +70,7 @@ library(raster)
 fin = raster::stack(done)
 names(fin)
 fin
+plot(fin)
 plot(fin[[9]])
 summary(fin[[9]])
 mapview::mapview(fin[[9]])
