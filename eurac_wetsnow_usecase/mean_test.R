@@ -8,8 +8,8 @@ as.data.frame(installed.packages()) %>%
 
 # connection to openEO Eurac backend -------------------------------------------
 driver_url = "https://openeo.eurac.edu"
-user = "aceo" #  "guest"
-password = "aceo_123"  #  "guest_123"
+user = "guest" #  "guest"
+password = "guest_123"  #  "guest_123"
 api_versions(url=driver_url)
 
 conn = connect(host = driver_url, 
