@@ -54,8 +54,8 @@ library(dplyr)
 
 # connection to openEO Eurac backend 
 driver_url = "https://openeo.eurac.edu"
-user = "aceo"
-password = "aceo_123"
+user = "guest"
+password = "guest_123"
 
 conn = connect(host = driver_url, 
                user = user, 
