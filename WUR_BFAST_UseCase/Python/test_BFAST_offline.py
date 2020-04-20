@@ -3,7 +3,6 @@ import xarray as xr
 import pandas as pd
 
 
-
 # set the working dir:
 os.chdir('/home/milutin/rStudioProjects/final-user-workshop/WUR_BFAST_UseCase/Python/')
 
