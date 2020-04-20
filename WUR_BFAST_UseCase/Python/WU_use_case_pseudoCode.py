@@ -1,5 +1,5 @@
 import openeo
-import logging
+import logging              
 import os
 from datetime import datetime, date, time, timedelta
 from shapely.geometry import Polygon
@@ -42,7 +42,7 @@ def load_udf(relative_path):
 # ----------------------------------------------------------------------------------------------------------------------
 # load and apply the udf code on data cube::
 # ----------------------------------------------------------------------------------------------------------------------
-BFASTMonitor_udf = load_udf('/local/path/to/BFASTMonitor_code.py')
+BFASTMonitor_udf = load_udf('BFAST_udf.py')
 
 # apply the udf code to reduce the data cube along the time dimension and get a raster which values shows
 # the day of the year 2019 where the break was detected:
