@@ -5,8 +5,9 @@ def bfast4openeo(udf_data):
     from datetime import datetime
     import xarray as xr
     import pandas as pd
+    import numpy as np
     #
-    start_hist = datetime(2017, 1, 1)
+    start_hist = datetime(2016, 12, 31)
     start_monitor = datetime(2019, 1, 1)
     end_monitor = datetime(2019, 12, 29)
     # get the dates from the data cube:
@@ -19,18 +20,16 @@ def bfast4openeo(udf_data):
     # specify the BFASTmonitor parameters:
     model = BFASTMonitor(
         start_monitor,
-        freq=365,
+        freq=31,
         k=3,
         verbose=1,
         hfrac=0.25,
-        trend=False,
+        trend=True,
         level=0.05,
-        backend='python',
-        device_id=0,
+        backend='python'
     )
     # run the monitoring:
-    # !!! question !!! can we get more informative progress bar for the below run?
-    model.fit(data, dates, n_chunks=1, nan_value=-9999)
+    model.fit(data, dates, nan_value=udf_data.nodatavals[0])
     # get the detected breaks as an xarray Data Array:
     # !!! question !!! are those breaks identical to the breaks we get from R script?
     breaks_xr = xr.DataArray(model.breaks,

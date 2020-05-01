@@ -13,6 +13,10 @@ os.chdir('/home/milutin/rStudioProjects/final-user-workshop/WUR_BFAST_UseCase/Py
 da = xr.open_rasterio('s1_vh_2017_2019_aoi.tif')\
     .rename({'band': 'time'})
 
+# deal with the band 9:
+da[8,:,:] = da[7,:,:]
+
+
 # assign the time stamps:
 da.coords['time'] = pd.date_range(start='1/1/2017', end='29/12/2019', freq='12D')
 
