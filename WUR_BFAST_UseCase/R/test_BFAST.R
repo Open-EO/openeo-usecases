@@ -23,30 +23,26 @@ eurac = connect(host = euracHost, version="0.4.2", user = user, password = passw
 p = processes()
 
 # the spatial and temporal exstends should be adopted:
-s2 = p$load_collection(id = p$data$openEO_S2_32632_10m_L2A, 
-                          spatial_extent = list(west = 11.2792, 
-                                                south = 46.4643, 
-                                                east = 11.4072, 
-                                                north = 46.5182), 
-                          temporal_extent = c("2018-06-04T00:00:00Z","2018-06-23T00:00:00Z"))
-
-
-# the spatial and temporal exstends should be adopted:
-s1 = p$load_collection(id = p$data$WUR_UseCase, 
+s1 = p$load_collection(id = p$data$openEO_WUR_UseCase, 
                        spatial_extent = list(west = -54.836, 
                                              south = -3.5467, 
                                              east =  -54.7956, 
                                              north = -3.5078), 
-                       temporal_extent = c("2017-01-01T00:00:00Z","2019-12-29T00:00:00Z"))
+                       # add band selection here
+                       temporal_extent = c("2017-01-01T00:00:00Z","2019-12-29T00:00:00Z"),
+                       # select the vh band:
+                       bands = c('VH'))
 
 
 list_udf_runtimes(eurac)
-describe_process(con = eurac,"run_udf")
+describe_process(con = eurac,"load_collection")
+
+describe_process(con = eurac, )
 
 # check the WUR test data at EURAC backend:
 list_collections()
-collection_viewer("WUR_UseCase")
-describe_collection(id="WUR_UseCase")
+collection_viewer("openEO_WUR_UseCase")
+describe_collection(id="openEO_WUR_UseCase")
 
 
 udfName = "BFAST_udf.R"
@@ -59,6 +55,7 @@ graph_test1 = p$save_result(test1, format="GTiff")
 compute_result(graph=graph_test1, format="GTiff", output_file = 'euracBackend_bfast_output.tif')
 
 
+# --------------------------------------------------------------------------------------
 
 describe_process(con = eurac,"save_result")
 # test 2 (the simple one)
