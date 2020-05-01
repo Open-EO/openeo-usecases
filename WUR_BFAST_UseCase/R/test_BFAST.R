@@ -24,10 +24,10 @@ p = processes()
 
 # the spatial and temporal exstends should be adopted:
 s1 = p$load_collection(id = p$data$openEO_WUR_UseCase, 
-                       spatial_extent = list(west = -54.836, 
+                       spatial_extent = list(west = -54.8360, 
                                              south = -3.5467, 
                                              east =  -54.7956, 
-                                             north = -3.5078), 
+                                             north = -3.5079), 
                        # add band selection here
                        temporal_extent = c("2017-01-01T00:00:00Z","2019-12-29T00:00:00Z"),
                        # select the vh band:
@@ -37,7 +37,6 @@ s1 = p$load_collection(id = p$data$openEO_WUR_UseCase,
 list_udf_runtimes(eurac)
 describe_process(con = eurac,"load_collection")
 
-describe_process(con = eurac, )
 
 # check the WUR test data at EURAC backend:
 list_collections()
