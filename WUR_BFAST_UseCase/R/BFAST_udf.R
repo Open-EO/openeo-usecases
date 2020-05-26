@@ -14,4 +14,7 @@ SpatialBFM = function(pixels)
 # either use adrop() to drop the band dimension... or include here to reduce.
 #StarsResult = st_apply(x, c("x", "y", "band"), SpatialBFM, PROGRESS=TRUE)
 StarsResult = st_apply(x, c("x", "y"), SpatialBFM, PROGRESS=TRUE)
+# deal with NA-a:
+StarsResult[is.na(StarsResult)] = -9999
+#
 StarsResult
