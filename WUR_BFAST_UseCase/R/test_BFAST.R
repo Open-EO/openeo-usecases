@@ -8,8 +8,7 @@ library(openeo)
 
 # enter valid credentials
 euracHost = "https://openeo.eurac.edu"
-#user = "guest"
-#password = "guest123"
+#
 user = ""
 password = ""
 
@@ -18,31 +17,27 @@ api_versions(url=euracHost)
 eurac = connect(host = euracHost, version="0.4.2", user = user, password = password, login_type = "basic")
 #eurac = connect(host = euracHost)
 
-
 # Build a process graph:
 p = processes()
 
 # the spatial and temporal exstends should be adopted:
-s1 = p$load_collection(id = p$data$openEO_WUR_UseCase, 
-                       spatial_extent = list(west = -54.8360, 
-                                             south = -3.5467, 
-                                             east =  -54.7956, 
-                                             north = -3.5079), 
+s1 = p$load_collection(id = p$data$openEO_WUR_UseCase_NoNA, 
+                       spatial_extent = list(west = -54.815,
+                                             south = -3.515,
+                                             east =  -54.810,
+                                             north = -3.510),
                        # add band selection here
                        temporal_extent = c("2017-01-01T00:00:00Z","2019-12-29T00:00:00Z"),
                        # select the vh band:
                        bands = c('VH'))
 
-
 list_udf_runtimes(eurac)
 describe_process(con = eurac,"load_collection")
 
-
 # check the WUR test data at EURAC backend:
 list_collections()
-collection_viewer("openEO_WUR_UseCase")
-describe_collection(id="openEO_WUR_UseCase")
-
+collection_viewer("openEO_WUR_UseCase_NoNA")
+describe_collection(id="openEO_WUR_UseCase_NoNA")
 
 udfName = "BFAST_udf.R"
 udfCode = readChar(udfName, file.info(udfName)$size)
@@ -51,7 +46,18 @@ udfCode = readChar(udfName, file.info(udfName)$size)
 
 test1 = p$run_udf(data = s1, udf = udfCode, runtime = "R")
 graph_test1 = p$save_result(test1, format="GTiff")
-compute_result(graph=graph_test1, format="GTiff", output_file = 'euracBackend_bfast_output.tif')
+# compute_result(graph=graph_test1, format="GTiff", output_file = 'euracBackend_bfast_output_noNAs.tif')
+
+
+#done = compute_result(graph=result, format="NETCDF", output_file = 'test_udf.ncdf') # this is a synchronous call, not working on udf!
+job_id = create_job(con = eurac, graph = graph_test1, title = "job1_wur_udf_rclient_byWUR", description = "job1_wur_udf_rclient_byWUR") # batch call, works on udf!
+start_job(con = eurac, job = job_id)
+done = download_results(job = job_id, folder = ".")
+
+
+
+
+
 
 
 # --------------------------------------------------------------------------------------
