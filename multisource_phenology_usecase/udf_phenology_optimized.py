@@ -98,7 +98,7 @@ def apply_hypercube(cube: DataCube, context: Dict) -> DataCube:
 
     # run phenology bundle    
     pp=Phenology(int(array.t.dt.year[0])) 
-    seasonMid_MaxGreenness=pp.getLocalMax(array, )
+    seasonMid_MaxGreenness=pp.getLocalMax(array)
     seasonStart_Date=pp.getStartOfSeason(array, seasonMid_MaxGreenness)
     seasonEnd_Date=pp.getEndOfSeason(array, seasonMid_MaxGreenness)
 
