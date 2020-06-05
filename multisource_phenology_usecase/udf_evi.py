@@ -40,7 +40,7 @@ def apply_hypercube(cube: DataCube, context: Dict) -> DataCube:
     
 #    result=result.assign_coords('bands'=array.bands)
     
- #   result=xarray.DataArray(result,coords={'t': array.coords['t'].values})
+    result=xarray.DataArray(result,coords={'t': array.coords['t'].values})
     
     return DataCube(result)
 

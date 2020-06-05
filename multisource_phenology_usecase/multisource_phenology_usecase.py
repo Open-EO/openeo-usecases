@@ -14,7 +14,7 @@ import utils
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
-openeo_url='http://openeo-dev.vgt.vito.be/openeo/0.4.0/'
+openeo_url='http://openeo-dev.vgt.vito.be/openeo/1.0.0/'
 #openeo_url='http://openeo.vgt.vito.be/openeo/0.4.0/'
 
 openeo_user=os.environ.get('OPENEO_USER','wrong_user')
@@ -56,7 +56,12 @@ if __name__ == '__main__':
     dataCollection=getImageCollection(eoconn, layerID_data, fieldgeom, year)\
         .apply_dimension(utils.load_udf('udf_smooth_savitzky_golay.py'),dimension='t',runtime="Python")\
         .apply_dimension(utils.load_udf('udf_phenology_optimized.py'),  dimension='t',runtime="Python")\
-        .execute_batch("tmp/batchtest.json",job_options=job_options)
+        .execute_batch("tmp/phenology.gtiff",job_options=job_options)
+
+    print(dataCollection)
+
+#    eoconn.get("/jobs/{j}/results".format(j="7a4fbde0-7e36-4c80-bdb7-8658a93e2b0f")).json()
+
 
     logger.info('FINISHED')
 

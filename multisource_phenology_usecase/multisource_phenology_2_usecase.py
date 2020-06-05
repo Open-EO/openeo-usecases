@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 openeo_url='http://openeo-dev.vgt.vito.be/openeo/1.0.0/'
-#openeo_url='http://openeo.vgt.vito.be/openeo/0.4.0/'
+#openeo_url='http://openeo.vgt.vito.be/openeo/1.0.0/'
 
 openeo_user=os.environ.get('OPENEO_USER','wrong_user')
 openeo_pass=os.environ.get('OPENEO_PASS','wrong_password')
@@ -36,12 +36,12 @@ layerID_data="TERRASCOPE_S2_TOC_V2"
 
 job_options={
     'driver-memory':'4G',
-    'executor-memory':'2G'
+    'executor-memory':'4G'
 }
 
 def getImageCollection(eoconn, layerid, fieldgeom, year, bands):
-#    startdate=str(year)+'-01-01'
-#    enddate=str(year+1)+'-03-31'
+#     startdate=str(year)+'-01-01'
+#     enddate=str(year+1)+'-03-31'
     startdate=str(year)+'-01-01'
     enddate=str(year)+'-01-10'
     polys = shapely.geometry.GeometryCollection([shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in fieldgeom["features"]])
@@ -51,10 +51,6 @@ def getImageCollection(eoconn, layerid, fieldgeom, year, bands):
         temporal_extent=[startdate, enddate],
         bands=bands
     ).filter_bbox(crs="EPSG:4326", **dict(zip(["west", "south", "east", "north"], bbox)))
-#     return eoconn \
-#         .load_collection(layerid) \
-#         .filter_temporal(startdate, enddate) \
-#         .filter_bbox(crs="EPSG:4326", **dict(zip(["west", "south", "east", "north"], bbox)))
 
 if __name__ == '__main__':
     eoconn=openeo.connect(openeo_url)
@@ -65,8 +61,22 @@ if __name__ == '__main__':
 #    mskExec=maskCollection.execute()
     
     dataCollection=getImageCollection(eoconn, layerID_data, fieldgeom, year, ["TOC-B02_10M","TOC-B04_10M","TOC-B08_10M"])\
-        .apply_dimension(utils.load_udf('udf_vito_save_to_public.py'),dimension='t',runtime="Python")\
-        .execute_batch("tmp/batchtest.json",job_options=job_options)
+        .apply_dimension(utils.load_udf('udf_save_to_file.py'),dimension='t',runtime="Python")\
+        .reduce_bands_udf(utils.load_udf('udf_evi.py'),runtime="Python")\
+        .apply_dimension(utils.load_udf('udf_save_to_file.py'),dimension='t',runtime="Python")\
+        .download("tmp/test")
+#        .reduce_dimension(dimension="bands",reducer='sum',band_math_mode=True)\
+#        .reduce_bands_udf(utils.load_udf('udf_evi.py'),runtime="Python")\
+#        .apply_dimension(utils.load_udf('udf_save_to_file.py'),dimension='t',runtime="Python")\
+
+#         .apply_dimension(utils.load_udf('udf_evi.py'),dimension='t',runtime="Python")\
+#         .apply_dimension(utils.load_udf('udf_save_to_file.py'),dimension='t',runtime="Python")\
+#         .apply_dimension(utils.load_udf('udf_smooth_savitzky_golay.py'),dimension='t',runtime="Python")\
+#         .apply_dimension(utils.load_udf('udf_save_to_file.py'),dimension='t',runtime="Python")\
+#         .apply_dimension(utils.load_udf('udf_phenology_optimized.py'),  dimension='t',runtime="Python")\
+#         .download("tmp/test")
+#        .execute_batch("tmp/phenology.tif",job_options=job_options)
+
 
 #         .apply_dimension(utils.load_udf('udf_evi.py'),dimension='t',runtime="Python")\
 #         .apply_dimension(utils.load_udf('udf_vito_save_to_public.py'),dimension='t',runtime="Python")\

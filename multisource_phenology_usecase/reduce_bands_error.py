@@ -52,11 +52,11 @@ if __name__ == '__main__':
     eoconn.authenticate_basic(openeo_user,openeo_pass)
     
     dataCollection=getImageCollection(eoconn, layerID_data, fieldgeom, year, ["TOC-B02_10M","TOC-B04_10M","TOC-B08_10M"])\
-        .reduce_bands_udf(utils.load_udf('udf_evi.py'),runtime="Python")\
+        .reduce_dimension(dimension="bands",reducer='sum',band_math_mode=True)\
         .apply_dimension(utils.load_udf('udf_smooth_savitzky_golay.py'),dimension='t',runtime="Python")\
         .download("tmp/test")
 
-#        .reduce_dimension(dimension="bands",reducer='sum',band_math_mode=True)\
+#        .reduce_bands_udf(utils.load_udf('udf_evi.py'),runtime="Python")\
 
     logger.info('FINISHED')
 
