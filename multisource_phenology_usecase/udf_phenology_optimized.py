@@ -25,8 +25,10 @@ def apply_hypercube(cube: DataCube, context: Dict) -> DataCube:
             tSos: The offset (%) to add to the start date minimum to set the start of the season
             tEos: The offset (%) to subtract from the end date minimum to set the end of the season
         """
-        def __init__(self,year):
+        def __init__(self,year,tdim,taxis):
             self.year=  year                                 # year of the season, int
+            self.tdim = tdim                                 # the name of the time dimension (string)
+            self.taxis = taxis                               # the index of the time dimension (int)
             self.sStart=numpy.datetime64(str(year)+'-04-02') # Start date of interval for start of season
             self.sEnd=  numpy.datetime64(str(year)+'-06-10') # End date of tart interval for start of season
             self.mStart=numpy.datetime64(str(year)+'-06-10') # Start date of interval for mid of season
@@ -42,7 +44,7 @@ def apply_hypercube(cube: DataCube, context: Dict) -> DataCube:
         """
         def getLocalMax(self,array):
             # Get the local maximum greenness
-            seasonMid_Range=array.loc[self.mStart:self.mEnd]
+            seasonMid_Range=array.sel(t=slice(self.mStart,self.mEnd))
             seasonMid_MaxGreennessIdx=seasonMid_Range.argmax('t')
             seasonMid_DateAtMax=seasonMid_Range.t[seasonMid_MaxGreennessIdx].dt.dayofyear
             seasonMid_MaxGreenness=seasonMid_Range[seasonMid_MaxGreennessIdx]
@@ -93,17 +95,26 @@ def apply_hypercube(cube: DataCube, context: Dict) -> DataCube:
             return seasonEnd_Date
 
 
-    # get the xarray    
+    # get the xarray, selecting band zero if multiple bands present    
     array=cube.get_array()
+    if array.bands.size>1:
+        array=array.drop_sel({'bands':array.bands[1:]})
+    array=array.squeeze('bands',drop=True)
 
     # run phenology bundle    
-    pp=Phenology(int(array.t.dt.year[0])) 
+    pp=Phenology(int(array.t.dt.year[0]),'t',array.dims.index('t')) 
     seasonMid_MaxGreenness=pp.getLocalMax(array)
     seasonStart_Date=pp.getStartOfSeason(array, seasonMid_MaxGreenness)
     seasonEnd_Date=pp.getEndOfSeason(array, seasonMid_MaxGreenness)
 
     # combine results
-    season=xarray.concat([seasonStart_Date,seasonEnd_Date],dim='bands').assign_coords(bands=['sos','eos'],t=numpy.datetime64(str(pp.year)+"-01-01")).expand_dims('t').astype(numpy.float64)
+    seasonStart_Date=seasonStart_Date.expand_dims('bands',0).assign_coords(bands=['sos'])
+    seasonEnd_Date=seasonEnd_Date.expand_dims('bands',0).assign_coords(bands=['eos'])
+    season=xarray\
+        .concat([seasonStart_Date,seasonEnd_Date],dim='bands')\
+        .assign_coords(bands=['sos','eos'],t=numpy.datetime64(str(pp.year)+"-01-01"))\
+        .expand_dims('t')\
+        .astype(numpy.float64)
     
     return DataCube(season)
 
