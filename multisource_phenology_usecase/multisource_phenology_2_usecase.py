@@ -9,17 +9,16 @@ import logging
 import shapely.geometry
 import os
 import utils
+import numpy
+import scipy.signal
 
-
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
-
-openeo_url='http://openeo-dev.vgt.vito.be/openeo/1.0.0/'
-#openeo_url='http://openeo.vgt.vito.be/openeo/1.0.0/'
+#############################
+# USER INPUT
+#############################
 
 openeo_user=os.environ.get('OPENEO_USER','wrong_user')
 openeo_pass=os.environ.get('OPENEO_PASS','wrong_password')
-
+year=2019
 fieldgeom={
     "type":"FeatureCollection",
     "name":"small_field",
@@ -29,115 +28,106 @@ fieldgeom={
     ]
 }
 
-year=2019
-layerID_data="TERRASCOPE_S2_TOC_V2"
-#layerID_data="S2_FAPAR_V102_WEBMERCATOR2"
-#layerID_mask="S2_FAPAR_SCENECLASSIFICATION_V102_PYRAMID"
+#############################
+# CODE
+#############################
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
+
+openeo_url='http://openeo-dev.vgt.vito.be/openeo/1.0.0/'
+#openeo_url='http://openeo.vgt.vito.be/openeo/1.0.0/'
+
+layerID="TERRASCOPE_S2_TOC_V2"
+startdate=str(year)+'-01-01'
+enddate=str(year+1)+'-03-31'
+# startdate=str(year)+'-01-01'
+# enddate=str(year)+'-01-10'
+
 
 job_options={
     'driver-memory':'4G',
     'executor-memory':'4G'
 }
 
-def getImageCollection(eoconn, layerid, fieldgeom, year, bands):
-#     startdate=str(year)+'-01-01'
-#     enddate=str(year+1)+'-03-31'
-    startdate=str(year)+'-01-01'
-    enddate=str(year)+'-01-10'
+def getImageCollection(eoconn, layer, fieldgeom, bands):
     polys = shapely.geometry.GeometryCollection([shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in fieldgeom["features"]])
     bbox = polys.bounds
     return eoconn.load_collection(
-        layerid,
+        layer,
         temporal_extent=[startdate, enddate],
         bands=bands
     ).filter_bbox(crs="EPSG:4326", **dict(zip(["west", "south", "east", "north"], bbox)))
 
+
+def makekernel(size: int) -> numpy.ndarray:
+    assert size % 2 == 1
+    kernel_vect = scipy.signal.windows.gaussian(size, std=size / 3.0, sym=True)
+    kernel = numpy.outer(kernel_vect, kernel_vect)
+    kernel = kernel / kernel.sum()
+    return kernel
+
+def create_advanced_mask(band, band_math_workaround=True):
+    # in openEO, 1 means mask (remove pixel) 0 means keep pixel
+    classification=band
+    
+    # keep useful pixels, so set to 1 (remove) if smaller than threshold
+    first_mask = ~ ((classification == 4) | (classification == 5) | (classification == 6) | (classification == 7))
+    first_mask = first_mask.apply_kernel(makekernel(17))
+    # remove pixels smaller than threshold, so pixels with a lot of neighbouring good pixels are retained?
+    if band_math_workaround:
+        first_mask = first_mask.add_dimension("bands", "mask", type="bands").band("mask")
+    first_mask = first_mask > 0.057
+
+    # remove cloud pixels so set to 1 (remove) if larger than threshold
+    second_mask = (classification == 3) | (classification == 8) | (classification == 9) | (classification == 10)
+    second_mask = second_mask.apply_kernel(makekernel(161))
+    if band_math_workaround:
+        second_mask = second_mask.add_dimension("bands", "mask", type="bands").band("mask")
+    second_mask = second_mask > 0.1
+ 
+    # TODO: the use of filter_temporal is a trick to make cube merging work, needs to be fixed in openeo client
+    return first_mask.filter_temporal(startdate, enddate) | second_mask.filter_temporal(startdate, enddate)
+    # return first_mask | second_mask
+    # return first_mask
+
+
+
 if __name__ == '__main__':
+
+    # connection
     eoconn=openeo.connect(openeo_url)
     eoconn.authenticate_basic(openeo_user,openeo_pass)
-#    eoconn=openeo.session(openeo_user,openeo_url)
-
-#    maskCollection=getImageCollection(eoconn, layerID_mask, fieldgeom, year)#.apply_dimension(utils.load_udf('udf_vito_save_to_public.py'),dimension='t',runtime="Python")
-#    mskExec=maskCollection.execute()
     
-    dataCollection=getImageCollection(eoconn, layerID_data, fieldgeom, year, ["TOC-B02_10M","TOC-B04_10M","TOC-B08_10M"])\
-        .apply_dimension(utils.load_udf('udf_save_to_file.py'),dimension='t',runtime="Python")\
-        .reduce_bands_udf(utils.load_udf('udf_evi.py'),runtime="Python")\
-        .apply_dimension(utils.load_udf('udf_save_to_file.py'),dimension='t',runtime="Python")\
-        .download("tmp/test")
-#        .reduce_dimension(dimension="bands",reducer='sum',band_math_mode=True)\
-#        .reduce_bands_udf(utils.load_udf('udf_evi.py'),runtime="Python")\
-#        .apply_dimension(utils.load_udf('udf_save_to_file.py'),dimension='t',runtime="Python")\
+    # compute the mask
+    maskband=create_advanced_mask(getImageCollection(eoconn, layerID, fieldgeom, ["SCENECLASSIFICATION_20M"]).band("SCENECLASSIFICATION_20M"))
+    maskband=maskband.apply_dimension(utils.load_udf('udf_save_to_file.py'),dimension='t',runtime="Python")
 
-#         .apply_dimension(utils.load_udf('udf_evi.py'),dimension='t',runtime="Python")\
-#         .apply_dimension(utils.load_udf('udf_save_to_file.py'),dimension='t',runtime="Python")\
-#         .apply_dimension(utils.load_udf('udf_smooth_savitzky_golay.py'),dimension='t',runtime="Python")\
-#         .apply_dimension(utils.load_udf('udf_save_to_file.py'),dimension='t',runtime="Python")\
-#         .apply_dimension(utils.load_udf('udf_phenology_optimized.py'),  dimension='t',runtime="Python")\
-#         .download("tmp/test")
-#        .execute_batch("tmp/phenology.tif",job_options=job_options)
+    # compute evi using band math
+    brnbands=getImageCollection(eoconn, layerID, fieldgeom, ["TOC-B02_10M","TOC-B04_10M","TOC-B08_10M"])
+    b2band=brnbands.band("TOC-B02_10M")
+    b4band=brnbands.band("TOC-B04_10M")
+    b8band=brnbands.band("TOC-B08_10M")
+    # why is the 10000?
+    eviband= (2.5 * (b8band - b4band)) / ((b8band + 6.0 * b4band - 7.5 * b2band) + 10000.0*1.0)
+    # eviband= (2.5 * (b8band - b4band)) / ((b8band + 6.0 * b4band - 7.5 * b2band) + 1.0)
+    eviband=eviband.apply_dimension(utils.load_udf('udf_save_to_file.py'),dimension='t',runtime="Python")
 
+    # set NaN where mask is active
+    eviband=eviband.mask(maskband)
+    eviband=eviband.apply_dimension(utils.load_udf('udf_save_to_file.py'),dimension='t',runtime="Python")
 
-#         .apply_dimension(utils.load_udf('udf_evi.py'),dimension='t',runtime="Python")\
-#         .apply_dimension(utils.load_udf('udf_vito_save_to_public.py'),dimension='t',runtime="Python")\
+    # run the smoother
+    eviband=eviband.apply_dimension(utils.load_udf('udf_smooth_savitzky_golay.py'),dimension='t',runtime="Python")
+    eviband=eviband.apply_dimension(utils.load_udf('udf_save_to_file.py'),dimension='t',runtime="Python")
     
-#     dataCollection=dataCollection\
-#         .graph_add_process(
-#             process_id='rename_dimension',
-#             args={
-#                 'data':   dataCollection.node_id,
-#                 'old': 'TOC-B05_20M',
-#                 'new': 'nir'
-#             }
-#         )
-# 
-#     dataCollection=dataCollection\
-#         .graph_add_process(
-#             process_id='rename_dimension',
-#             args={
-#                 'data':   dataCollection.node_id,
-#                 'old': 'TOC-B04_10M',
-#                 'new': 'red'
-#             }
-#         )
-#         
-#         
-#     dataCollection=dataCollection\
-#         .apply_dimension(utils.load_udf('udf_vito_save_to_public.py'),dimension='t',runtime="Python")\
-#         .ndvi()\
-#         .execute()
+    # run phenology
+    eviband=eviband.apply_dimension(utils.load_udf('udf_phenology_optimized.py'),  dimension='t',runtime="Python")
+    eviband=eviband.apply_dimension(utils.load_udf('udf_save_to_file.py'),dimension='t',runtime="Python")
 
+    eviband.execute_batch("phenology.gtiff",job_options=job_options)
+    
 
-#        {"name": "SCENECLASSIFICATION_20M"}
-    
-    
-#     #.apply_dimension(utils.load_udf('udf_vito_save_to_public.py'),dimension='t',runtime="Python")
-#     mergedCollection=maskCollection.graph_add_process(
-#         process_id='resample_cube_temporal',
-#         args={
-#             'data':   maskCollection.node_id,
-#             'target': dataCollection.node_id,
-#             'method': 'mean'
-#         }
-#     )
-#     
-#     
-#     curves=mergedCollection\
-#         .apply_dimension(utils.load_udf('udf_vito_save_to_public.py'),dimension='t',runtime="Python")\
-#         .execute_batch("tmp/batchtest.json",job_options=job_options)
-# 
-# 
-# 
-# #    imgcoll=getImageCollection(eoconn, layerid, fieldgeom, startdate, enddate).execute_batch("tmp/batchtest.json",out_format='json')
-# #     polys = shapely.geometry.GeometryCollection([shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in fieldgeom["features"]])
-# #     imgcoll=getImageCollection(eoconn, layerid, fieldgeom, startdate, enddate).polygonal_mean_timeseries(polys).execute_batch("tmp/batchtest.json",)
-# # 
-# #     ts_savgol = pandas.Series(imgcoll).apply(pandas.Series)
-# #     ts_savgol.head(10)
-#     #imgcoll=getImageCollection(eoconn, layerid, fieldgeom, startdate, enddate).download('tmp/test.tif', format="GTIFF")
-#     
-# #    curves=imgcoll.apply_dimension(load_udf('smooth_savitzky_golay.py'),process='',dimension='temporal').download('tmp/test')
-    
     logger.info('FINISHED')
 
 

@@ -7,7 +7,7 @@ from typing import Dict
 def apply_hypercube(cube: DataCube, context: Dict) -> DataCube:
 
     import xarray
-    from xarray.ufuncs import fabs
+    from xarray.ufuncs import fabs,isnan
     import numpy
 
     class Phenology:
@@ -46,8 +46,8 @@ def apply_hypercube(cube: DataCube, context: Dict) -> DataCube:
             # Get the local maximum greenness
             seasonMid_Range=array.sel(t=slice(self.mStart,self.mEnd))
             seasonMid_MaxGreennessIdx=seasonMid_Range.argmax('t')
-            seasonMid_DateAtMax=seasonMid_Range.t[seasonMid_MaxGreennessIdx].dt.dayofyear
-            seasonMid_MaxGreenness=seasonMid_Range[seasonMid_MaxGreennessIdx]
+            #seasonMid_DateAtMax=seasonMid_Range.t[seasonMid_MaxGreennessIdx].dt.dayofyear
+            seasonMid_MaxGreenness=seasonMid_Range.isel(t=seasonMid_MaxGreennessIdx)
             return seasonMid_MaxGreenness
     
     
@@ -60,9 +60,9 @@ def apply_hypercube(cube: DataCube, context: Dict) -> DataCube:
         """
         def getStartOfSeason(self,array, sMmaxgreen):
             # compute the minimum in the season start
-            seasonStart_Range=array.loc[self.sStart:self.sEnd]
+            seasonStart_Range=array.sel(t=slice(self.sStart,self.sEnd))
             seasonStart_MinGreennessIdx=seasonStart_Range.argmin('t')
-            seasonStart_DateAtMin,seasonStart_MinGreenness=seasonStart_Range.t[seasonStart_MinGreennessIdx].dt.dayofyear,seasonStart_Range[seasonStart_MinGreennessIdx]
+            seasonStart_DateAtMin,seasonStart_MinGreenness=seasonStart_Range.t[seasonStart_MinGreennessIdx].dt.dayofyear,seasonStart_Range.isel(t=seasonStart_MinGreennessIdx)
             # Calculate the greenness value corresponding to the start of the season
             seasonStart_Greenness = seasonStart_MinGreenness + ((sMmaxgreen - seasonStart_MinGreenness) * (self.tSos / 100.0))
             # Get the closest date to this greenness
@@ -82,9 +82,9 @@ def apply_hypercube(cube: DataCube, context: Dict) -> DataCube:
         """
         def getEndOfSeason(self, array, sMmaxgreen):
             # compute the minimum in the season start
-            seasonEnd_Range=array.loc[self.eStart:self.eEnd]
+            seasonEnd_Range=array.sel(t=slice(self.eStart,self.eEnd))
             seasonEnd_MinGreennessIdx=seasonEnd_Range.argmin('t')
-            seasonEnd_DateAtMin,seasonEnd_MinGreenness=seasonEnd_Range.t[seasonEnd_MinGreennessIdx].dt.dayofyear,seasonEnd_Range[seasonEnd_MinGreennessIdx]
+            seasonEnd_DateAtMin,seasonEnd_MinGreenness=seasonEnd_Range.t[seasonEnd_MinGreennessIdx].dt.dayofyear,seasonEnd_Range.isel(t=seasonEnd_MinGreennessIdx)
             # Calculate the greenness value corresponding to the start of the season
             seasonEnd_Greenness = seasonEnd_MinGreenness + ((sMmaxgreen - seasonEnd_MinGreenness) * (self.tEos / 100.0))
             # Get the closest date to this greenness
@@ -96,10 +96,19 @@ def apply_hypercube(cube: DataCube, context: Dict) -> DataCube:
 
 
     # get the xarray, selecting band zero if multiple bands present    
+    # also building bands and t removed metadata
     array=cube.get_array()
-    if array.bands.size>1:
-        array=array.drop_sel({'bands':array.bands[1:]})
-    array=array.squeeze('bands',drop=True)
+    origdims=list(array.dims)
+    array=array.isel(bands=range(0,1)).squeeze('bands',drop=True)
+    dims=list(array.dims)
+    dims.remove('t')
+    coords=dict(array.coords)
+    coords.pop('t')
+    
+    # guard agains missing data (Nan's)
+    # input data should already be smoothed and interpolated
+    missingmask=isnan(array).any('t')
+    array=array.fillna(0.)
 
     # run phenology bundle    
     pp=Phenology(int(array.t.dt.year[0]),'t',array.dims.index('t')) 
@@ -108,13 +117,19 @@ def apply_hypercube(cube: DataCube, context: Dict) -> DataCube:
     seasonEnd_Date=pp.getEndOfSeason(array, seasonMid_MaxGreenness)
 
     # combine results
-    seasonStart_Date=seasonStart_Date.expand_dims('bands',0).assign_coords(bands=['sos'])
-    seasonEnd_Date=seasonEnd_Date.expand_dims('bands',0).assign_coords(bands=['eos'])
+    seasonStart_Date=xarray.DataArray(seasonStart_Date,dims=dims,coords=coords)
+    seasonEnd_Date=xarray.DataArray(seasonEnd_Date,dims=dims,coords=coords)
     season=xarray\
         .concat([seasonStart_Date,seasonEnd_Date],dim='bands')\
-        .assign_coords(bands=['sos','eos'],t=numpy.datetime64(str(pp.year)+"-01-01"))\
-        .expand_dims('t')\
+        .expand_dims('t',0)\
+        .assign_coords(bands=['sos','eos'],t=[numpy.datetime64(str(pp.year)+"-01-01")])\
         .astype(numpy.float64)
+    
+    # set missing data to 0, exploiting that at this point t,bands are the first two coordinates
+    season=season.where(~missingmask,0.)
+
+    # set the original order of dimensions
+    season=season.transpose(*origdims)
     
     return DataCube(season)
 
