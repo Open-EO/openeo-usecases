@@ -7,7 +7,7 @@ import unittest
 import os
 from matplotlib import pyplot
 import udf_smooth_savitzky_golay
-from utils import load_UDF_Data, reduceXY, save_UDF_Data
+from utils import load_UDF_Data, reduceXY, save_UDF_Data, plot_timeseries
 import udf_phenology_optimized
 import xarray
 
@@ -26,7 +26,7 @@ class TestUtils(unittest.TestCase):
         ref4=load_UDF_Data(os.path.join(os.path.dirname(__file__),'input_4'))
         cube4=reduceXY(2, 2, cube8)
         xarray.testing.assert_allclose(cube4.get_array(), ref4.get_array())
-
+        
     @unittest.skip
     def test_produce_downsample(self):
         datacube=load_UDF_Data(os.path.join(os.path.dirname(__file__),'data_ee02d1fa29dd4a76a14477cf8106d28e'))
@@ -55,8 +55,7 @@ class TestUtils(unittest.TestCase):
         plot_timeseries=True
         plot_seasons=True
         datacube=load_UDF_Data(os.path.join(os.path.dirname(__file__),'input_'+str(gridsize)))
-        
-        
+         
         if plot_timeseries:
             pyplot.figure(figsize=(19,9.5))
        
@@ -116,4 +115,27 @@ class TestUtils(unittest.TestCase):
         
         print('FINISHED')
 
+    @unittest.skip
+    def test_tplot(self):
+        
+        ddir=os.path.join(os.path.dirname(__file__),'tmp3')
 
+        cube=load_UDF_Data(os.path.join(ddir,'data_ca3b9c9921744a3fbb8a87c448e6c911'))
+        cube=reduceXY(32, 32, cube)
+        save_UDF_Data(os.path.join(ddir,'raw_ndvi'),cube)
+
+        cube=load_UDF_Data(os.path.join(ddir,'data_8feaa97f24b0421fb7d381ffb9b13588'))
+        cube=reduceXY(32, 32, cube)
+        save_UDF_Data(os.path.join(ddir,'filtered_ndvi'),cube)
+        
+        cube=load_UDF_Data(os.path.join(ddir,'data_9bd928cf9cf74c31947fc518794b7df5'))
+        cube=reduceXY(32, 32, cube)
+        save_UDF_Data(os.path.join(ddir,'smoothed_ndvi'),cube)
+
+        raw_ndvi=load_UDF_Data(os.path.join(ddir,'raw_ndvi'))
+        filtered_ndvi=load_UDF_Data(os.path.join(ddir,'filtered_ndvi'))
+        smoothed_ndvi=load_UDF_Data(os.path.join(ddir,'smoothed_ndvi'))
+
+        plot_timeseries(raw_ndvi.get_array())
+        plot_timeseries(filtered_ndvi.get_array())
+        plot_timeseries(smoothed_ndvi.get_array())

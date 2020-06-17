@@ -11,6 +11,7 @@ import json
 import xarray
 from pathlib import Path
 from openeo_udf.api.datacube import DataCube
+from matplotlib import pyplot
 
 def get_resource(relative_path):
     return str(Path( relative_path))
@@ -45,3 +46,25 @@ def reduceXY(xskip,yskip,datacube):
 def resampleXY(xskip,yskip,datacube: DataCube):
     dataarray=datacube.get_array()
     return DataCube(dataarray.coarsen({'x':xskip,'y':yskip}).mean())
+
+def plot_timeseries(self,arr):
+    
+    pyplot.figure(figsize=(19,9.5))
+   
+    days=arr.t.dt.dayofyear+(arr.t.dt.year-arr.t.dt.year[0])*365
+    for ix in arr.x.values:
+        for iy in arr.y.values:
+            if len(arr.x.values)>1 and len(arr.x.values)>1:
+                ic="#%02X%02X00"%(int(ix/(len(arr.x.values)-1)*255),int(iy/(len(arr.y.values)-1)*255))
+            else: ic="#000000"
+            #pyplot.scatter(days,arr.values[:,0,ix,iy],c="#FFFFFF",edgecolors=ic,label="{}:{}".format(ix,iy))
+            pyplot.plot(   days,arr.values[:,0,ix,iy],c=ic,label="X:Y={}:{}".format(ix,iy))
+
+    pyplot.tight_layout()
+    pyplot.ylim(-0.2,1.2)
+    pyplot.xlim(0,500)
+    pyplot.legend(fontsize='xx-small',markerscale=0.5,columnspacing=0.5,labelspacing=0.1,loc='upper left',bbox_to_anchor=(0.0, 1.0),ncol=arr.x.values.size, fancybox=True, shadow=True)
+    pyplot.show()
+    pyplot.close()
+
+
