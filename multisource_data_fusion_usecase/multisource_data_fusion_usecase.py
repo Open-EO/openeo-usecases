@@ -91,6 +91,7 @@ def makekernel(size: int) -> numpy.ndarray:
     kernel = kernel / kernel.sum()
     return kernel
 
+
 def create_advanced_mask(band, band_math_workaround=True):
     # in openEO, 1 means mask (remove pixel) 0 means keep pixel
     classification=band

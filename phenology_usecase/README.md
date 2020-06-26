@@ -20,7 +20,7 @@ Python pre-requisites on client side:
 * scipy
 * xarray
 
-The main Python script is multisource_phenology_usecase.py, this is how to run it:
+The main Python script is phenology_usecase.py, this is how to run it:
 * setup environment variables OPENEO_USER and OPENEO_PASS with your credentials
 * in the script update the year and the area of interest (as geojson)
 * run the script and the result will be donwloaded to the local computer as phenology.gtiff. 
