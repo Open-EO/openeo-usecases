@@ -10,6 +10,7 @@ import shapely.geometry
 import os
 import numpy
 import scipy.signal
+from pathlib import Path
 
 #############################
 # USER INPUT
@@ -17,6 +18,7 @@ import scipy.signal
 
 openeo_user=os.environ.get('OPENEO_USER','wrong_user')
 openeo_pass=os.environ.get('OPENEO_PASS','wrong_password')
+openeo_model=os.environ.get('OPENEO_MODEL','wrong_model')
 year=2019
 fieldgeom={
     "type":"FeatureCollection",
@@ -53,6 +55,16 @@ job_options={
 #############################
 # CODE
 #############################
+
+
+def get_resource(relative_path):
+    return str(Path( relative_path))
+
+
+def load_udf(relative_path):
+    with open(get_resource(relative_path), 'r+') as f:
+        return f.read()
+
 
 def utm_zone(coordinates):
     if 56 <= coordinates[1] < 64 and 3 <= coordinates[0] < 12:
@@ -154,6 +166,10 @@ if __name__ == '__main__':
     cube=cube.merge(PVndvi)
     #cube=cube.apply_dimension(utils.load_udf('../phenology_usecase/udf_save_to_file.py').replace('label="data"','label="data_S2PV"'),dimension='t',runtime="Python")
     cube.execute_batch("merge_S2PV.tif",job_options=job_options)
+
+    # run gan
+#     cube=cube.apply_dimension(load_udf('udf_gan.py').replace('prediction_model=""','prediction_model="'+openeo_model+'"'),dimension='t',runtime="Python")
+#     cube.execute_batch("gan.tif",job_options=job_options)
 
     logger.info('FINISHED')
 
