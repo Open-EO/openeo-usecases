@@ -1,0 +1,115 @@
+{
+  "1": {
+    "process_id": "load_collection",
+    "arguments": {
+      "temporal_extent": [
+        "2014-11-11T00:00:00.000Z",
+        "2014-12-30T00:00:00.000Z"
+      ],
+      "spatial_extent": {
+        "east": 11.416511535644531,
+        "south": 46.406617041056165,
+        "north": 46.550361051816196,
+        "west": 11.257896423339844
+      },
+      "id": "Backscatter_Sentinel1_Track015",
+      "bands": [
+        "VV",
+        "VH"
+      ]
+    }
+  },
+  "2": {
+    "process_id": "reduce",
+    "arguments": {
+      "data": {
+        "from_node": "3"
+      },
+      "reducer": {
+        "callback": {
+          "2": {
+            "result": true,
+            "process_id": "mean",
+            "arguments": {
+              "data": {
+                "from_argument": "data"
+              }
+            }
+          }
+        }
+      },
+      "dimension": "temporal"
+    }
+  },
+  "3": {
+    "process_id": "filter_bands",
+    "arguments": {
+      "data": {
+        "from_node": "1"
+      },
+      "common_names": [],
+      "wavelengths": [],
+      "bands": [
+        "VV"
+      ]
+    }
+  },
+  "4": {
+    "process_id": "filter_bands",
+    "arguments": {
+      "data": {
+        "from_node": "1"
+      },
+      "common_names": [],
+      "wavelengths": [],
+      "bands": [
+        "VH"
+      ]
+    }
+  },
+  "5": {
+    "process_id": "reduce",
+    "arguments": {
+      "data": {
+        "from_node": "4"
+      },
+      "reducer": {
+        "callback": {
+          "2": {
+            "result": true,
+            "process_id": "mean",
+            "arguments": {
+              "data": {
+                "from_argument": "data"
+              }
+            }
+          }
+        }
+      },
+      "dimension": "temporal"
+    }
+  },
+  "6": {
+    "process_id": "merge_cubes",
+    "arguments": {
+      "cube2": {
+        "from_node": "5"
+      },
+      "cube1": {
+        "from_node": "2"
+      },
+      "overlap_resolver": "+"
+    }
+  },
+  "7": {
+    "result": true,
+    "process_id": "save_result",
+    "arguments": {
+      "data": {
+        "from_node": "6"
+      },
+      "format": "PNG",
+      "options": {}
+    }
+  }
+}
