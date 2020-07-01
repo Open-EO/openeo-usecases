@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 openeo_url='http://openeo-dev.vgt.vito.be/openeo/1.0.0/'
-#openeo_url='http://openeo.vgt.vito.be/openeo/1.0.0/'
+#openeo_url='https://openeo.vito.be/openeo/1.0.0/'
 
 #startdate=str(year)+'-03-01'
 #enddate=str(year)+'-09-30'
@@ -85,7 +85,7 @@ def epsg_code(coordinates):
     return int(code+utm_zone(coordinates))
     
 
-def getImageCollection(eoconn, layer, fieldgeom, bands):
+def getImageCollection(eoconn, layer, fieldgeom, bands=None):
     polys = shapely.geometry.GeometryCollection([shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in fieldgeom["features"]])
     bbox = polys.bounds
     return eoconn.load_collection(
@@ -93,7 +93,7 @@ def getImageCollection(eoconn, layer, fieldgeom, bands):
         temporal_extent=[startdate, enddate],
         spatial_extent=dict(zip(["west", "south", "east", "north"], bbox)),
         bands=bands
-    ).filter_bbox(crs="EPSG:4326", **dict(zip(["west", "south", "east", "north"], bbox)))
+    )
 
 
 def makekernel(size: int) -> numpy.ndarray:
@@ -145,27 +145,28 @@ if __name__ == '__main__':
     S2bands=S2bands.mask(S2mask)
 
     # prepare the ProbaV ndvi band 
-    PVndvi=getImageCollection(eoconn, 'PROBAV_L3_S10_TOC_NDVI_333M', fieldgeom, ['ndvi'])
-    PVndvi=PVndvi.resample_spatial(10.,3857)#epsgcode)
-
+    PVndvi=getImageCollection(eoconn, 'PROBAV_L3_S10_TOC_NDVI_333M', fieldgeom, ["ndvi"])
+    PVndvi=PVndvi.resample_cube_spatial(S2bands)
 
     # prepare the Sentinel-1 bands
-    S1bands=getImageCollection(eoconn, 'TERRASCOPE_S1_GAMMA0_V1', fieldgeom, ['VH','VV'])
-    S1bands=S1bands.resample_spatial(10.,3857)#epsgcode)
+    S1bands=getImageCollection(eoconn, 'TERRASCOPE_S1_GAMMA0_V1', fieldgeom,['VH', 'VV'])
+    S1bands=S1bands.resample_cube_spatial(S2bands)
 
     # merge S1 into S2
     # this fails with GC memory overhead exceeded
     cube=S2bands
     cube=cube.merge(S1bands)
     #cube=cube.apply_dimension(utils.load_udf('../phenology_usecase/udf_save_to_file.py').replace('label="data"','label="data_S2S1"'),dimension='t',runtime="Python")
-    cube.execute_batch("merge_S2S1.tif",job_options=job_options)
+    #cube.execute_batch("merge_S2S1.tif",job_options=job_options)
+    cube.download("merge_S2S1.tif")
 
     # merge ProbaV into S2
     # this fails with key error 14
     cube=S2bands
     cube=cube.merge(PVndvi)
     #cube=cube.apply_dimension(utils.load_udf('../phenology_usecase/udf_save_to_file.py').replace('label="data"','label="data_S2PV"'),dimension='t',runtime="Python")
-    cube.execute_batch("merge_S2PV.tif",job_options=job_options)
+    #cube.execute_batch("merge_S2PV.tif",job_options=job_options)
+    cube.download("merge_S2PV.tif")
 
     # run gan
 #     cube=cube.apply_dimension(load_udf('udf_gan.py').replace('prediction_model=""','prediction_model="'+openeo_model+'"'),dimension='t',runtime="Python")
