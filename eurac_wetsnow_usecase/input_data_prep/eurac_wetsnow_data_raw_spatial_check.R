@@ -8,9 +8,10 @@ library(stars)
 
 # get files s1a ----------------------------------------------------------------
 path_s1a="/mnt/CEPH_PRODUCTS/S1_L1C_TEST/S1-PreProc-Test-v2/T015/EPSG3035"
+path_s1a="/mnt/CEPH_FS_RASDAMAN/VRT/OpenEO_UseCase/T117/"
 files_vh = list.files(path = path_s1a, pattern = "VH_eurac$", full.names = TRUE)
-files_vv = list.files(path = path_s1a, pattern = "VV_eurac$", full.names = TRUE)
-files_lia = list.files(path = path_s1a, pattern = "LIA_eurac$", full.names = TRUE)
+files_vv = list.files(path = path_s1a, pattern = "VV_eurac", full.names = TRUE)
+files_lia = list.files(path = path_s1a, pattern = "LIA_eurac", full.names = TRUE)
 
 # get timeseries from filenames ------------------------------------------------
 enrich_date = function(file_ls){
