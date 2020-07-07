@@ -1,0 +1,180 @@
+{
+  "1": {
+    "process_id": "load_collection",
+    "arguments": {
+      "id": "LIA_Sentinel1_Track015",
+      "spatial_extent": {
+        "east": 10.777416229248047,
+        "south": 46.78148963659169,
+        "north": 46.85244345762143,
+        "west": 10.570392608642578
+      },
+      "temporal_extent": [
+        "2014-12-05T00:00:00.000Z",
+        "2014-12-05T00:00:00.000Z"
+      ],
+      "bands": [
+        "LIA"
+      ],
+      "properties": null
+    }
+  },
+  "2": {
+    "process_id": "reduce",
+    "arguments": {
+      "data": {
+        "from_node": "1"
+      },
+      "reducer": {
+        "callback": {
+          "2": {
+            "process_id": "subtract",
+            "arguments": {
+              "data": [
+                45,
+                {
+                  "from_argument": "data"
+                }
+              ]
+            }
+          },
+          "3": {
+            "process_id": "product",
+            "arguments": {
+              "data": [
+                0.04,
+                {
+                  "from_node": "2"
+                }
+              ]
+            }
+          },
+          "4": {
+            "process_id": "sum",
+            "arguments": {
+              "data": [
+                1,
+                {
+                  "from_node": "3"
+                }
+              ]
+            }
+          },
+          "5": {
+            "process_id": "product",
+            "arguments": {
+              "data": [
+                0.5,
+                {
+                  "from_node": "4"
+                }
+              ]
+            },
+            "result": true
+          }
+        }
+      },
+      "dimension": "bands",
+      "target_dimension": null
+    },
+    "result": true
+  },
+  "3": {
+    "process_id": "load_collection",
+    "arguments": {
+      "id": "LIA_Sentinel1_Track015",
+      "spatial_extent": {
+        "west": 10.570564270019531,
+        "south": 46.78172473751809,
+        "east": 10.777244567871092,
+        "north": 46.85220866568534
+      },
+      "temporal_extent": [
+        "2014-12-05T00:00:00.000Z",
+        "2014-12-05T00:00:00.000Z"
+      ],
+      "bands": [
+        "LIA"
+      ],
+      "properties": null
+    }
+  },
+  "4": {
+    "process_id": "apply",
+    "arguments": {
+      "data": {
+        "from_node": "3"
+      },
+      "process": {
+        "callback": {
+          "2": {
+            "process_id": "lt",
+            "arguments": {
+              "x": {
+                "from_argument": "x"
+              },
+              "y": 20
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "6": {
+    "process_id": "if_custom",
+    "arguments": {
+      "reject": {
+        "from_node": "2"
+      },
+      "value": {
+        "from_node": "4"
+      },
+      "accept": 0.5
+    }
+  },
+  "7": {
+    "process_id": "apply",
+    "arguments": {
+      "data": {
+        "from_node": "3"
+      },
+      "process": {
+        "callback": {
+          "2": {
+            "process_id": "gt",
+            "arguments": {
+              "x": {
+                "from_argument": "x"
+              },
+              "y": 45
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "8": {
+    "process_id": "if_custom",
+    "arguments": {
+      "reject": {
+        "from_node": "6"
+      },
+      "value": {
+        "from_node": "7"
+      },
+      "accept": 1
+    }
+  },
+  "9": {
+    "process_id": "save_result",
+    "arguments": {
+      "data": {
+        "from_node": "8"
+      },
+      "format": "GTIFF",
+      "options": {}
+    }
+  }
+}
