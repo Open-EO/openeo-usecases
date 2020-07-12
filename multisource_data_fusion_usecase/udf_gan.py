@@ -2,6 +2,7 @@
 # Uncomment the import only for coding support
 from openeo_udf.api.datacube import DataCube
 from typing import Dict
+import pandas
 
 
 
@@ -376,16 +377,34 @@ def apply_hypercube(cube: DataCube, context: Dict) -> DataCube:
     model = build_generator(tslength=37)
     model.load_weights(prediction_model)
 
+    # compute acquisition dates
+    acquisition_dates = pandas.date_range(
+        inarr.t.values.min() + pandas.to_timedelta('30D'),
+        inarr.t.values.max() - pandas.to_timedelta('30D'),
+        freq='10D'
+    )
+
     # result buffer
-    shape=[1,1,1,1]
+    shape=[len(acquisition_dates),1,1,1]
     shape[inarr.dims.index('x')]=xsize
     shape[inarr.dims.index('y')]=ysize
-    predictions=DataArray(numpy.full(shape,numpy.nan),dims=inarr.dims,coords={'bands':['predictions'],'t':[middate]})
+    predictions=DataArray(numpy.full(shape,numpy.nan),dims=inarr.dims,coords={'bands':['predictions'],'t':acquisition_dates})
     
     # run processing
-    for iwin in windowlist:
-        ires = process_window(iwin, middate, inarr.sel({'x':range(iwin[0][0],iwin[0][1]),'y':range(iwin[1][0],iwin[1][1])}), model, 128, 0.)
-        predictions.loc[{'x':range(iwin[0][0],iwin[0][1]),'y':range(iwin[1][0],iwin[1][1])}]=ires
+    for idate in acquisition_dates:
+        idaterange=pandas.date_range(
+            idate - pandas.to_timedelta('30D'),
+            idate + pandas.to_timedelta('30D'),
+            freq='1D'
+        )
+        for iwin in windowlist:
+            data=inarr.sel({
+                'x':range(iwin[0][0],iwin[0][1]),
+                'y':range(iwin[1][0],iwin[1][1]),
+                't':idaterange
+            })
+            ires = process_window(iwin, middate, data, model, 128, 0.)
+            predictions.loc[{'x':range(iwin[0][0],iwin[0][1]),'y':range(iwin[1][0],iwin[1][1])}]=ires
             
     # behave transparently
     return DataCube(predictions)

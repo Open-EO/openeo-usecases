@@ -11,6 +11,7 @@ import os
 import numpy
 import scipy.signal
 from pathlib import Path
+import utils
 
 #############################
 # USER INPUT
@@ -41,10 +42,10 @@ logging.basicConfig(level=logging.DEBUG)
 openeo_url='http://openeo-dev.vgt.vito.be/openeo/1.0.0/'
 #openeo_url='https://openeo.vito.be/openeo/1.0.0/'
 
-#startdate=str(year)+'-03-01'
-#enddate=str(year)+'-09-30'
-startdate=str(year)+'-08-01'
-enddate=str(year)+'-08-10'
+startdate=str(year)+'-01-01'
+enddate=str(year+1)+'-03-31'
+# startdate=str(year)+'-08-01'
+# enddate=str(year)+'-08-10'
 
 
 job_options={
@@ -143,34 +144,28 @@ if __name__ == '__main__':
     S2mask=create_advanced_mask(getImageCollection(eoconn, 'TERRASCOPE_S2_TOC_V2', fieldgeom, ['SCENECLASSIFICATION_20M']).band('SCENECLASSIFICATION_20M'))
     S2bands=getImageCollection(eoconn, 'TERRASCOPE_S2_TOC_V2', fieldgeom, ["TOC-B04_10M","TOC-B08_10M"])
     S2bands=S2bands.mask(S2mask)
-
-    # prepare the ProbaV ndvi band 
-    PVndvi=getImageCollection(eoconn, 'PROBAV_L3_S10_TOC_NDVI_333M', fieldgeom, ["ndvi"])
-    PVndvi=PVndvi.resample_cube_spatial(S2bands)
+    #S2bands.download('S2bands.json',format='json')
 
     # prepare the Sentinel-1 bands
     S1bands=getImageCollection(eoconn, 'TERRASCOPE_S1_GAMMA0_V1', fieldgeom,['VH', 'VV'])
     S1bands=S1bands.resample_cube_spatial(S2bands)
+    #S1bands.download('S1bands.json',format='json')
 
     # merge S1 into S2
-    # this fails with GC memory overhead exceeded
     cube=S2bands
     cube=cube.merge(S1bands)
-    #cube=cube.apply_dimension(utils.load_udf('../phenology_usecase/udf_save_to_file.py').replace('label="data"','label="data_S2S1"'),dimension='t',runtime="Python")
-    #cube.execute_batch("merge_S2S1.tif",job_options=job_options)
-    cube.download("merge_S2S1.tif")
 
-    # merge ProbaV into S2
-    # this fails with key error 14
-    cube=S2bands
+    # prepare the ProbaV ndvi band 
+    PVndvi=getImageCollection(eoconn, 'PROBAV_L3_S10_TOC_NDVI_333M', fieldgeom, ["ndvi"])
+    PVndvi=PVndvi.resample_cube_spatial(cube)
+    #PVndvi.download('PVbands.json',format='json')
+    
+    # merge ProbaV into S2&S1
     cube=cube.merge(PVndvi)
-    #cube=cube.apply_dimension(utils.load_udf('../phenology_usecase/udf_save_to_file.py').replace('label="data"','label="data_S2PV"'),dimension='t',runtime="Python")
-    #cube.execute_batch("merge_S2PV.tif",job_options=job_options)
-    cube.download("merge_S2PV.tif")
 
     # run gan
-#     cube=cube.apply_dimension(load_udf('udf_gan.py').replace('prediction_model=""','prediction_model="'+openeo_model+'"'),dimension='t',runtime="Python")
-#     cube.execute_batch("gan.tif",job_options=job_options)
+    #cube=cube.apply_dimension(load_udf('udf_gan.py').replace('prediction_model=""','prediction_model="'+openeo_model+'"'),dimension='t',runtime="Python")
+    cube.execute_batch("gan.tif",job_options=job_options)
 
     logger.info('FINISHED')
 
