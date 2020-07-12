@@ -42,10 +42,10 @@ logging.basicConfig(level=logging.DEBUG)
 openeo_url='http://openeo-dev.vgt.vito.be/openeo/1.0.0/'
 #openeo_url='https://openeo.vito.be/openeo/1.0.0/'
 
-startdate=str(year)+'-01-01'
-enddate=str(year+1)+'-03-31'
-# startdate=str(year)+'-08-01'
-# enddate=str(year)+'-08-10'
+#startdate=str(year)+'-01-01'
+#enddate=str(year+1)+'-03-31'
+startdate=str(year)+'-08-01'
+enddate=str(year)+'-08-10'
 
 
 job_options={
