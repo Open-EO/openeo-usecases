@@ -155,17 +155,17 @@ if __name__ == '__main__':
     cube=S2bands
     cube=cube.merge(S1bands)
 
-    # prepare the ProbaV ndvi band 
+    # prepare the ProbaV ndvi band
     PVndvi=getImageCollection(eoconn, 'PROBAV_L3_S10_TOC_NDVI_333M', fieldgeom, ["ndvi"])
     PVndvi=PVndvi.resample_cube_spatial(cube)
     #PVndvi.download('PVbands.json',format='json')
-    
+
     # merge ProbaV into S2&S1
     cube=cube.merge(PVndvi)
 
     # run gan
     #cube=cube.apply_dimension(load_udf('udf_gan.py').replace('prediction_model=""','prediction_model="'+openeo_model+'"'),dimension='t',runtime="Python")
-    cube.execute_batch("gan.tif",job_options=job_options)
+    cube.execute_batch("gan.tif",job_options=job_options,tiled=True)
 
     logger.info('FINISHED')
 
