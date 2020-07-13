@@ -4,7 +4,7 @@ from openeo_udf.api.datacube import DataCube
 from typing import Dict
 
 
-def apply_hypercube(cube: DataCube, context: Dict) -> DataCube:
+def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
 
     import pandas
     import xarray

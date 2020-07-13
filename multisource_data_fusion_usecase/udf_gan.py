@@ -6,7 +6,7 @@ import pandas
 
 
 
-def apply_hypercube(cube: DataCube, context: Dict) -> DataCube:
+def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
 
     import xarray
     import numpy
