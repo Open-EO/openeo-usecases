@@ -17,20 +17,22 @@ from phenology_usecase import utils
 # USER INPUT
 #############################
 
-openeo_user=os.environ.get('OPENEO_USER','wrong_user')
-openeo_pass=os.environ.get('OPENEO_PASS','wrong_password')
-openeo_model=os.environ.get('OPENEO_MODEL','wrong_model')
-year=2019
-fieldgeom={
-    "type":"FeatureCollection",
-    "name":"small_field",
-    "crs":{"type":"name","properties":{"name":"urn:ogc:def:crs:OGC:1.3:CRS84"}},
-    "features":[
-        {"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[5.0477606,51.2138409],[5.0477606,51.2225585],[5.0624407,51.2225585],[5.0624407,51.2138409],[5.0477606,51.2138409]]]}}
-#        {"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[5.074595,51.229408],[5.074950,51.212771],[5.099565,51.215100],[5.096555,51.229408],[5.074595,51.229408]]]}}
+openeo_user = os.environ.get('OPENEO_USER', 'wrong_user')
+openeo_pass = os.environ.get('OPENEO_PASS', 'wrong_password')
+openeo_model = os.environ.get('OPENEO_MODEL', 'wrong_model')
+
+year = 2019
+fieldgeom = {
+    "type": "FeatureCollection",
+    "name": "small_field",
+    "crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:OGC:1.3:CRS84"}},
+    "features": [
+        {"type": "Feature", "properties": {}, "geometry": {"type": "Polygon", "coordinates": [
+            [[5.0477606, 51.2138409], [5.0477606, 51.2225585], [5.0624407, 51.2225585], [5.0624407, 51.2138409],
+             [5.0477606, 51.2138409]]]}}
+        #        {"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[5.074595,51.229408],[5.074950,51.212771],[5.099565,51.215100],[5.096555,51.229408],[5.074595,51.229408]]]}}
     ]
 }
-
 
 #############################
 # NON-USER CONFIG
@@ -39,19 +41,19 @@ fieldgeom={
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
-openeo_url='http://openeo-dev.vgt.vito.be/openeo/1.0.0/'
-#openeo_url='https://openeo.vito.be/openeo/1.0.0/'
+openeo_url = 'http://openeo-dev.vgt.vito.be/openeo/1.0.0/'
+# openeo_url='https://openeo.vito.be/openeo/1.0.0/'
 
-#startdate=str(year)+'-01-01'
-#enddate=str(year+1)+'-03-31'
-startdate=str(year)+'-08-01'
-enddate=str(year)+'-08-10'
+# startdate=str(year)+'-01-01'
+# enddate=str(year+1)+'-03-31'
+startdate = str(year) + '-08-01'
+enddate = str(year) + '-08-10'
 
-
-job_options={
-    'driver-memory':'8G',
-    'executor-memory':'8G'
+job_options = {
+    'driver-memory': '8G',
+    'executor-memory': '8G'
 }
+
 
 #############################
 # CODE
@@ -59,7 +61,7 @@ job_options={
 
 
 def get_resource(relative_path):
-    return str(Path( relative_path))
+    return str(Path(relative_path))
 
 
 def load_udf(relative_path):
@@ -82,17 +84,19 @@ def utm_zone(coordinates):
 
 
 def epsg_code(coordinates):
-    code=32600 if coordinates[1]>0. else 32700
-    return int(code+utm_zone(coordinates))
-    
+    code = 32600 if coordinates[1] > 0. else 32700
+    return int(code + utm_zone(coordinates))
+
 
 def getImageCollection(eoconn, layer, fieldgeom, bands=None):
-    polys = shapely.geometry.GeometryCollection([shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in fieldgeom["features"]])
+    polys = shapely.geometry.GeometryCollection(
+        [shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in fieldgeom["features"]])
     bbox = polys.bounds
+    extent = dict(zip(["west", "south", "east", "north"], bbox))
     return eoconn.load_collection(
         layer,
         temporal_extent=[startdate, enddate],
-        spatial_extent=dict(zip(["west", "south", "east", "north"], bbox)),
+        spatial_extent=extent,
         bands=bands
     )
 
@@ -107,8 +111,8 @@ def makekernel(size: int) -> numpy.ndarray:
 
 def create_advanced_mask(band, band_math_workaround=True):
     # in openEO, 1 means mask (remove pixel) 0 means keep pixel
-    classification=band
-    
+    classification = band
+
     # keep useful pixels, so set to 1 (remove) if smaller than threshold
     first_mask = ~ ((classification == 4) | (classification == 5) | (classification == 6) | (classification == 7))
     first_mask = first_mask.apply_kernel(makekernel(17))
@@ -123,7 +127,7 @@ def create_advanced_mask(band, band_math_workaround=True):
     if band_math_workaround:
         second_mask = second_mask.add_dimension("bands", "mask", type="bands").band("mask")
     second_mask = second_mask > 0.1
- 
+
     # TODO: the use of filter_temporal is a trick to make cube merging work, needs to be fixed in openeo client
     return first_mask.filter_temporal(startdate, enddate) | second_mask.filter_temporal(startdate, enddate)
     # return first_mask | second_mask
@@ -131,58 +135,61 @@ def create_advanced_mask(band, band_math_workaround=True):
 
 
 if __name__ == '__main__':
-
     # find the utm zone in epsg code for lat/lon of centroid
-    geo=shapely.geometry.GeometryCollection([shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in fieldgeom["features"]])
-    epsgcode=epsg_code((geo.centroid.x,geo.centroid.y))
+    geo = shapely.geometry.GeometryCollection(
+        [shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in fieldgeom["features"]])
+    epsgcode = epsg_code((geo.centroid.x, geo.centroid.y))
+
+    polys = shapely.geometry.GeometryCollection(
+        [shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in fieldgeom["features"]])
+    bbox = polys.bounds
+    extent = dict(zip(["west", "south", "east", "north"], bbox))
+    extent['crs'] = "EPSG:4326"
 
     # connection
-    eoconn=openeo.connect(openeo_url)
-    eoconn.authenticate_basic(openeo_user,openeo_pass)
-    
+    eoconn = openeo.connect(openeo_url)
+    eoconn.authenticate_basic(openeo_user, openeo_pass)
+
+    s2_sceneclassification = eoconn.load_collection('TERRASCOPE_S2_TOC_V2', bands=['SCENECLASSIFICATION_20M']) \
+        .band('SCENECLASSIFICATION_20M')
     # prepare the Sentinel-2 bands
-    S2mask=create_advanced_mask(getImageCollection(eoconn, 'TERRASCOPE_S2_TOC_V2', fieldgeom, ['SCENECLASSIFICATION_20M']).band('SCENECLASSIFICATION_20M'))
-    S2bands=getImageCollection(eoconn, 'TERRASCOPE_S2_TOC_V2', fieldgeom, ["TOC-B04_10M","TOC-B08_10M"])
-    S2bands=S2bands.mask(S2mask)
+    S2mask = create_advanced_mask(s2_sceneclassification)
+
+    S2bands = eoconn.load_collection('TERRASCOPE_S2_TOC_V2', bands=['TOC-B04_10M', 'TOC-B08_10M'])
+    S2bands = S2bands.mask(S2mask)
 
     # prepare the Sentinel-1 bands
-    S1bands=getImageCollection(eoconn, 'TERRASCOPE_S1_GAMMA0_V1', fieldgeom,['VH', 'VV'])
-    S1bands=S1bands.resample_cube_spatial(S2bands)
+    S1bands = eoconn.load_collection('TERRASCOPE_S1_GAMMA0_V1', bands=['VH', 'VV'])
+    S1bands = S1bands.resample_cube_spatial(S2bands)
 
     # merge S1 into S2
-    cube=S2bands
-    cube=cube.merge(S1bands)
+    cube = S2bands
+    cube = cube.merge(S1bands)
 
     # prepare the ProbaV ndvi band
-    PVndvi=getImageCollection(eoconn, 'PROBAV_L3_S10_TOC_NDVI_333M', fieldgeom, ["ndvi"])
-    PVndvi=PVndvi.resample_cube_spatial(cube)
+    PVndvi = eoconn.load_collection('PROBAV_L3_S10_TOC_NDVI_333M', bands=['ndvi'])
+    PVndvi = PVndvi.resample_cube_spatial(cube)
 
     # merge ProbaV into S2&S1
-    cube=cube.merge(PVndvi)
+    cube = cube.merge(PVndvi)
 
     # run gan to compute a single NDVI
-    gan_udf_code = load_udf('udf_gan.py').replace('prediction_model=""','prediction_model="'+openeo_model+'"')
-    ndvi_cube=cube.apply_neighborhood(openeo.UDF(code=gan_udf_code, runtime="Python"), size = [
-                                                          {'dimension': 'x', 'value': 128, 'unit': 'px'},
-                                                          {'dimension': 'y', 'value': 128, 'unit': 'px'}
-                                                      ], overlap = [
+    gan_udf_code = load_udf('udf_gan.py').replace('prediction_model=""', 'prediction_model="' + openeo_model + '"')
+    ndvi_cube = cube.apply_neighborhood(openeo.UDF(code=gan_udf_code, runtime="Python"), size=[
+        {'dimension': 'x', 'value': 128, 'unit': 'px'},
+        {'dimension': 'y', 'value': 128, 'unit': 'px'}
+    ], overlap=[
         {'dimension': 'x', 'value': 16, 'unit': 'px'},
         {'dimension': 'y', 'value': 16, 'unit': 'px'}
     ])
 
     # run phenology
-    phenology_cube=ndvi_cube.apply_dimension(utils.load_udf('udf_phenology_optimized.py'),  dimension='t',runtime="Python")
+    phenology_cube = ndvi_cube.apply_dimension(utils.load_udf('udf_phenology_optimized.py'), dimension='t',runtime="Python")
 
-    phenology_cube.save_user_defined_process("vito_phenology",public=True)
+    phenology_cube.save_user_defined_process("vito_phenology", public=True)
 
-    # S2bands.download('S2bands.json',format='json')
-    # S1bands.download('S1bands.json',format='json')
-    # PVndvi.download('PVbands.json',format='json')
-    # ndvi_cube.execute_batch("gan.tif",job_options=job_options,tiled=True)
+    S2bands.filter_temporal(startdate, enddate).filter_bbox(**extent).download('S2bands.json', format='json')
+    # S1bands.filter_temporal(startdate,enddate).filter_bbox(**extent).download('S1bands.json',format='json')
+    # PVndvi.filter_temporal(startdate,enddate).filter_bbox(**extent).download('PVbands.json',format='json')
+    # ndvi_cube.filter_temporal(startdate,enddate).filter_bbox(**extent).execute_batch("gan.tif",job_options=job_options,tiled=True)
     logger.info('FINISHED')
-
-
-
-
-
-
