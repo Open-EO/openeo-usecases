@@ -11,7 +11,7 @@ import os
 import numpy
 import scipy.signal
 from pathlib import Path
-import utils
+from phenology_usecase import utils
 
 #############################
 # USER INPUT
@@ -163,10 +163,14 @@ if __name__ == '__main__':
     # merge ProbaV into S2&S1
     cube=cube.merge(PVndvi)
 
-    # run gan
-    #cube=cube.apply_dimension(load_udf('udf_gan.py').replace('prediction_model=""','prediction_model="'+openeo_model+'"'),dimension='t',runtime="Python")
-    cube.execute_batch("gan.tif",job_options=job_options,tiled=True)
+    # run gan to compute a single NDVI
+    ndvi_cube=cube.apply_dimension(load_udf('udf_gan.py').replace('prediction_model=""','prediction_model="'+openeo_model+'"'),dimension='t',runtime="Python")
 
+    #ndvi_cube.execute_batch("gan.tif",job_options=job_options,tiled=True)
+    # run phenology
+    phenology_cube=ndvi_cube.apply_dimension(utils.load_udf('udf_phenology_optimized.py'),  dimension='t',runtime="Python")
+
+    phenology_cube.save_user_defined_process("vito_phenology",public=True)
     logger.info('FINISHED')
 
 
