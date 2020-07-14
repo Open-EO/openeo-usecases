@@ -144,12 +144,10 @@ if __name__ == '__main__':
     S2mask=create_advanced_mask(getImageCollection(eoconn, 'TERRASCOPE_S2_TOC_V2', fieldgeom, ['SCENECLASSIFICATION_20M']).band('SCENECLASSIFICATION_20M'))
     S2bands=getImageCollection(eoconn, 'TERRASCOPE_S2_TOC_V2', fieldgeom, ["TOC-B04_10M","TOC-B08_10M"])
     S2bands=S2bands.mask(S2mask)
-    #S2bands.download('S2bands.json',format='json')
 
     # prepare the Sentinel-1 bands
     S1bands=getImageCollection(eoconn, 'TERRASCOPE_S1_GAMMA0_V1', fieldgeom,['VH', 'VV'])
     S1bands=S1bands.resample_cube_spatial(S2bands)
-    #S1bands.download('S1bands.json',format='json')
 
     # merge S1 into S2
     cube=S2bands
@@ -158,19 +156,29 @@ if __name__ == '__main__':
     # prepare the ProbaV ndvi band
     PVndvi=getImageCollection(eoconn, 'PROBAV_L3_S10_TOC_NDVI_333M', fieldgeom, ["ndvi"])
     PVndvi=PVndvi.resample_cube_spatial(cube)
-    #PVndvi.download('PVbands.json',format='json')
 
     # merge ProbaV into S2&S1
     cube=cube.merge(PVndvi)
 
     # run gan to compute a single NDVI
-    ndvi_cube=cube.apply_dimension(load_udf('udf_gan.py').replace('prediction_model=""','prediction_model="'+openeo_model+'"'),dimension='t',runtime="Python")
+    gan_udf_code = load_udf('udf_gan.py').replace('prediction_model=""','prediction_model="'+openeo_model+'"')
+    ndvi_cube=cube.apply_neighborhood(openeo.UDF(code=gan_udf_code, runtime="Python"), size = [
+                                                          {'dimension': 'x', 'value': 128, 'unit': 'px'},
+                                                          {'dimension': 'y', 'value': 128, 'unit': 'px'}
+                                                      ], overlap = [
+        {'dimension': 'x', 'value': 16, 'unit': 'px'},
+        {'dimension': 'y', 'value': 16, 'unit': 'px'}
+    ])
 
-    #ndvi_cube.execute_batch("gan.tif",job_options=job_options,tiled=True)
     # run phenology
     phenology_cube=ndvi_cube.apply_dimension(utils.load_udf('udf_phenology_optimized.py'),  dimension='t',runtime="Python")
 
     phenology_cube.save_user_defined_process("vito_phenology",public=True)
+
+    # S2bands.download('S2bands.json',format='json')
+    # S1bands.download('S1bands.json',format='json')
+    # PVndvi.download('PVbands.json',format='json')
+    # ndvi_cube.execute_batch("gan.tif",job_options=job_options,tiled=True)
     logger.info('FINISHED')
 
 
