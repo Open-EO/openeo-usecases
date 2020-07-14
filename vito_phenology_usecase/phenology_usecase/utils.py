@@ -47,7 +47,7 @@ def resampleXY(xskip,yskip,datacube: DataCube):
     dataarray=datacube.get_array()
     return DataCube(dataarray.coarsen({'x':xskip,'y':yskip}).mean())
 
-def plot_timeseries(self,arr):
+def plot_timeseries(arr):
     
     pyplot.figure(figsize=(19,9.5))
    

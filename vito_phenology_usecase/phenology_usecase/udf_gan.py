@@ -2,7 +2,6 @@
 # Uncomment the import only for coding support
 from openeo_udf.api.datacube import DataCube
 from typing import Dict
-import pandas
 
 
 
@@ -12,14 +11,10 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
     import numpy
     import itertools
     from xarray.core.dataarray import DataArray
-    from tensorflow.keras.layers import Input, concatenate,Conv2D, Dropout, LeakyReLU, Activation, Conv3D
-    from tensorflow.keras.layers import BatchNormalization,Conv2DTranspose
-    from tensorflow.keras.initializers import RandomNormal
-    from tensorflow.keras import Model
-    import tensorflow as tf
+    import pandas
+    from tensorflow.python.keras.models import load_model
 
-
-    # DEFAULTS #########################
+    # BUILTIN CONFIG #########################
 
     NDVI='ndvi'
     PVid='ndvi'
@@ -28,6 +23,12 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
     VHid='VH'
     VVid='VV'
     prediction_model=""
+    
+    time_window_half_days_int=90
+    resample_freq_days_int=5
+    
+    time_window_half=str(time_window_half_days_int)+'D'
+    resample_freq=str(resample_freq_days_int)+'D'
 
     if context is not None:
         prediction_model=context.get('prediction_model',prediction_model)
@@ -80,198 +81,6 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
             if (xEnd==bbox[2]): break
     
         return windowlist
-
-
-    def build_generator(windowsize=32, tslength=13):
-        kernelsize = 4
-        stride = 2
-        init = RandomNormal(mean=0.0, stddev=0.02)
-    
-        def conv2d(layer_input, filters, kernelsize, stride, init,
-                   batchnormalization=True):
-            c = Conv2D(filters, kernel_size=(kernelsize, kernelsize),
-                       strides=stride, padding='same', activation=None,
-                       kernel_initializer=init)(layer_input)
-            if batchnormalization:
-                c = BatchNormalization()(c)
-            c = LeakyReLU(alpha=0.2)(c)
-            return c
-    
-        def deconv2d(layer_input, s1_skip_input, s2_skip_input,
-                     proba_skip_input, filters, kernelsize, stride,
-                     init, dropout, batchnormalization=True):
-            d = Conv2DTranspose(filters, kernel_size=(kernelsize, kernelsize),
-                                strides=stride, padding='same',
-                                activation=None,
-                                kernel_initializer=init)(layer_input)
-            if batchnormalization:
-                d = BatchNormalization()(d)
-            if dropout:
-                d = Dropout(dropout)(d)
-            d = concatenate([d, s1_skip_input, s2_skip_input,
-                             proba_skip_input])
-            d = Activation('relu')(d)
-            return d
-    
-        # Inputs
-        s1_input = Input(
-            shape=(tslength, windowsize, windowsize, 2),
-            name='s1_input')
-        s2_input = Input(
-            shape=(tslength, windowsize, windowsize, 1),
-            name='s2_input')
-        proba_input = Input(
-            shape=(tslength, windowsize, windowsize, 1),
-            name='proba_input')
-    
-        # ------------------
-        # S1 encoder
-        #
-        # First ConvLSTM2D to handle the temporal dependencies
-        # Then a tradiational Conv2D encoder
-        # ------------------
-        s1_conv3d_1 = LeakyReLU(alpha=0.2)(BatchNormalization()(
-            Conv3D(filters=64,
-                   kernel_size=(7, 3, 3),
-                   strides=(5, 1, 1),
-                   padding="same")(s1_input)))
-        s1_conv3d_2 = LeakyReLU(alpha=0.2)(BatchNormalization()(
-            Conv3D(filters=64,
-                   kernel_size=(5, 3, 3),
-                   strides=(5, 1, 1),
-                   padding="same")(s1_conv3d_1)))
-        s1_conv3d_3 = tf.keras.backend.squeeze(
-            LeakyReLU(alpha=0.2)(BatchNormalization()(
-                Conv3D(filters=64,
-                       kernel_size=(7, 3, 3),
-                       strides=(2, 1, 1),
-                       padding="same")(s1_conv3d_2))), axis=1)
-    
-        s1_enc1 = conv2d(s1_conv3d_3, 64, kernelsize=kernelsize,
-                         stride=stride, init=init, batchnormalization=False)
-        s1_enc2 = conv2d(s1_enc1, 128, kernelsize=kernelsize,
-                         stride=stride, init=init)
-        s1_enc3 = conv2d(s1_enc2, 256, kernelsize=kernelsize,
-                         stride=stride, init=init)
-        s1_enc4 = conv2d(s1_enc3, 512, kernelsize=kernelsize,
-                         stride=stride, init=init)
-    
-        # Bottleneck, no batch norm and relu instead of leaky
-        s1_b = Conv2D(512, (4, 4), strides=(2, 2), padding='same',
-                      kernel_initializer=init)(s1_enc4)
-        s1_b = Activation('relu')(s1_b)
-    
-        # ------------------
-        # S2 encoder
-        #
-        # First ConvLSTM2D to handle the temporal dependencies
-        # Then a tradiational Conv2D encoder
-        # ------------------
-    
-        s2_conv3d_1 = LeakyReLU(alpha=0.2)(BatchNormalization()(
-            Conv3D(filters=64,
-                   kernel_size=(7, 1, 1),
-                   strides=(5, 1, 1),
-                   padding="same")(s2_input)))
-        s2_conv3d_2 = LeakyReLU(alpha=0.2)(BatchNormalization()(
-            Conv3D(filters=64,
-                   kernel_size=(5, 1, 1),
-                   strides=(5, 1, 1),
-                   padding="same")(s2_conv3d_1)))
-        s2_conv3d_3 = tf.keras.backend.squeeze(
-            LeakyReLU(alpha=0.2)(BatchNormalization()(
-                Conv3D(filters=64,
-                       kernel_size=(7, 1, 1),
-                       strides=(2, 1, 1),
-                       padding="same")(s2_conv3d_2))), axis=1)
-    
-        s2_enc1 = conv2d(s2_conv3d_3, 64, kernelsize=kernelsize,
-                         stride=stride, init=init, batchnormalization=False)
-        s2_enc2 = conv2d(s2_enc1, 128, kernelsize=kernelsize,
-                         stride=stride, init=init)
-        s2_enc3 = conv2d(s2_enc2, 256, kernelsize=kernelsize,
-                         stride=stride, init=init)
-        s2_enc4 = conv2d(s2_enc3, 512, kernelsize=kernelsize,
-                         stride=stride, init=init)
-    
-        # Bottleneck, no batch norm and relu instead of leaky
-        s2_b = Conv2D(512, (4, 4), strides=(2, 2), padding='same',
-                      kernel_initializer=init)(s2_enc4)
-        s2_b = Activation('relu')(s2_b)
-    
-        # ------------------
-        # PROBA encoder
-        #
-        # First ConvLSTM2D to handle the temporal dependencies
-        # Then a tradiational Conv2D encoder
-        # ------------------
-    
-        proba_conv3d_1 = LeakyReLU(alpha=0.2)(BatchNormalization()(
-            Conv3D(filters=64,
-                   kernel_size=(7, 1, 1),
-                   strides=(5, 1, 1),
-                   padding="same")(proba_input)))
-        proba_conv3d_2 = LeakyReLU(alpha=0.2)(BatchNormalization()(
-            Conv3D(filters=64,
-                   kernel_size=(5, 1, 1),
-                   strides=(5, 1, 1),
-                   padding="same")(proba_conv3d_1)))
-        proba_conv3d_3 = tf.keras.backend.squeeze(
-            LeakyReLU(alpha=0.2)(BatchNormalization()(
-                Conv3D(filters=64,
-                       kernel_size=(7, 1, 1),
-                       strides=(2, 1, 1),
-                       padding="same")(proba_conv3d_2))), axis=1)
-    
-        proba_enc1 = conv2d(proba_conv3d_3, 64, kernelsize=kernelsize,
-                            stride=stride, init=init, batchnormalization=False)
-        proba_enc2 = conv2d(proba_enc1, 128, kernelsize=kernelsize,
-                            stride=stride, init=init)
-        proba_enc3 = conv2d(proba_enc2, 256, kernelsize=kernelsize,
-                            stride=stride, init=init)
-        proba_enc4 = conv2d(proba_enc3, 512, kernelsize=kernelsize,
-                            stride=stride, init=init)
-    
-        # Bottleneck, no batch norm and relu instead of leaky
-        proba_b = Conv2D(512, (4, 4), strides=(2, 2), padding='same',
-                         kernel_initializer=init)(proba_enc4)
-        proba_b = Activation('relu')(proba_b)
-    
-        # --------------------------------------
-        # Concatenation of the encoded features
-        # --------------------------------------
-    
-        concatenated = concatenate([s1_b, s2_b, proba_b])
-    
-        # --------------------------------------
-        # DECODER
-        # --------------------------------------
-    
-        dec4 = deconv2d(concatenated, s1_enc4, s2_enc4, proba_enc4,
-                        512, kernelsize=kernelsize,
-                        stride=stride, init=init, dropout=0.5)
-        dec3 = deconv2d(dec4, s1_enc3, s2_enc3, proba_enc3,
-                        256, kernelsize=kernelsize,
-                        stride=stride, init=init, dropout=0)
-        dec2 = deconv2d(dec3, s1_enc2, s2_enc2, proba_enc2,
-                        128, kernelsize=kernelsize,
-                        stride=stride, init=init, dropout=0)
-        dec1 = deconv2d(dec2, s1_enc1, s2_enc1, proba_enc1,
-                        64, kernelsize=kernelsize,
-                        stride=stride, init=init, dropout=0)
-    
-        # OUTPUT LAYER
-        output = Activation('tanh')(Conv2DTranspose(
-            1, (4, 4), strides=2, padding='same',
-            kernel_initializer=init)(dec1))
-    
-        # Define the final generator model
-        generator = Model(
-            inputs=[s1_input, s2_input, proba_input],
-            outputs=output,
-            name='generator')
-    
-        return generator
     
     
     def minmaxscaler(data, source):
@@ -294,7 +103,7 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
         return dataunscaled
 
 
-    def process_window(window, acquisitiondate, inarr, model, windowsize=128, nodata=0):
+    def process_window(inarr, model, windowsize=128, nodata=0):
     
 # SKIPPING THIS BECAUSE RELYING ON PROPERLY SETTING FILTER TEMPORAL IN THE OPENEO PROCESS
 # THIS MIGHT THROWS NOT ALL DIMENSIONS FOUND IN t: output_index DATE RANGE IS BIGGER THAN WHAT IS IN INARR
@@ -303,7 +112,10 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
 #                                      acquisitiondate + pd.to_timedelta('90D'),
 #                                      freq='5D')
 #         inarr=inarr.ffill(dim='t').resample(t='1D').ffill().sel({'t': output_index}, method='ffill')
-        inarr=inarr.ffill(dim='t').resample(t='1D').ffill()
+
+# TODO: test: window loader in parcelremoves all dateswhere even a single pixel is nodata in any of the variables
+
+        inarr=inarr.ffill(dim='t').resample(t='1D').ffill().resample(t=resample_freq).ffill()
         
         # grow it to 5 dimensions
         inarr=inarr.expand_dims(dim=['d0','d5'],axis=[0,5])
@@ -350,7 +162,7 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
     # rescale
     inarr.loc[{'bands':PVid}]=0.004*inarr.sel(bands=PVid)-0.08
     inarr.loc[{'bands':B4id}]*=0.0001
-    inarr.loc[{'bands':B4id}]*=0.0001
+    inarr.loc[{'bands':B8id}]*=0.0001
     inarr.loc[{'bands':VHid}]=10.*xarray.ufuncs.log10(inarr.sel(bands=VHid))
     inarr.loc[{'bands':VVid}]=10.*xarray.ufuncs.log10(inarr.sel(bands=VVid))
     
@@ -374,13 +186,12 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
     middate=inarr.t.values[0]+0.5*(inarr.t.values[-1]-inarr.t.values[0])
 
     # load the model
-    model = build_generator(tslength=37)
-    model.load_weights(prediction_model)
+    model=load_model(prediction_model)
 
     # compute acquisition dates
     acquisition_dates = pandas.date_range(
-        inarr.t.values.min() + pandas.to_timedelta('30D'),
-        inarr.t.values.max() - pandas.to_timedelta('30D'),
+        inarr.t.values.min() + pandas.to_timedelta(time_window_half),
+        inarr.t.values.max() - pandas.to_timedelta(time_window_half),
         freq='10D'
     )
 
@@ -392,19 +203,14 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
     
     # run processing
     for idate in acquisition_dates:
-        idaterange=pandas.date_range(
-            idate - pandas.to_timedelta('30D'),
-            idate + pandas.to_timedelta('30D'),
-            freq='1D'
-        )
         for iwin in windowlist:
             data=inarr.sel({
-                'x':range(iwin[0][0],iwin[0][1]),
-                'y':range(iwin[1][0],iwin[1][1]),
-                't':idaterange
+                'x':slice(iwin[0][0],iwin[0][1]),
+                'y':slice(iwin[1][0],iwin[1][1]),
+                't':slice(idate-pandas.to_timedelta(time_window_half), idate+pandas.to_timedelta(time_window_half))
             })
-            ires = process_window(iwin, middate, data, model, 128, 0.)
-            predictions.loc[{'x':range(iwin[0][0],iwin[0][1]),'y':range(iwin[1][0],iwin[1][1])}]=ires
+            ires = process_window(data, model, 128, 0.)
+            predictions.loc[{'t':idate,'x':range(iwin[0][0],iwin[0][1]),'y':range(iwin[1][0],iwin[1][1])}]=ires
             
     # behave transparently
     return DataCube(predictions)
