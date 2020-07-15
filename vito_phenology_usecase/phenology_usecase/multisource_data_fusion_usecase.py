@@ -175,12 +175,12 @@ if __name__ == '__main__':
 
     # run gan to compute a single NDVI
     gan_udf_code = load_udf('udf_gan.py').replace('prediction_model=""', 'prediction_model="' + openeo_model + '"')
-    ndvi_cube = cube.apply_neighborhood(openeo.UDF(code=gan_udf_code, runtime="Python"), size=[
-        {'dimension': 'x', 'value': 128, 'unit': 'px'},
-        {'dimension': 'y', 'value': 128, 'unit': 'px'}
+    ndvi_cube = cube.apply_neighborhood(openeo.UDF(code=gan_udf_code, runtime="Python",data={'from_parameter': 'data'}), size=[
+        {'dimension': 'x', 'value': 112, 'unit': 'px'},
+        {'dimension': 'y', 'value': 112, 'unit': 'px'}
     ], overlap=[
-        {'dimension': 'x', 'value': 16, 'unit': 'px'},
-        {'dimension': 'y', 'value': 16, 'unit': 'px'}
+        {'dimension': 'x', 'value': 8, 'unit': 'px'},
+        {'dimension': 'y', 'value': 8, 'unit': 'px'}
     ])
 
     # run phenology
