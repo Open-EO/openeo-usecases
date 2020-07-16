@@ -227,7 +227,7 @@ if __name__ == '__main__':
 
     phenology_cube.save_user_defined_process("vito_phenology", public=True)
 
-    phenology_cube.execute_batch("eos_sos.tif",out_format='GTiff', job_options=job_options, catalog=True)
+    phenology_cube.execute_batch("eos_sos.tif",out_format='GTiff', job_options=job_options, parameters={"catalog":True})
 
 #     try: 
 #         phenology_cube.execute_batch("finished.json",out_format='json', job_options=job_options, tiled=True)
