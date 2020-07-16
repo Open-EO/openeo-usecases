@@ -22,38 +22,49 @@ openeo_pass = os.environ.get('OPENEO_PASS', 'wrong_password')
 openeo_model = os.environ.get('OPENEO_MODEL', 'wrong_model')
 
 year = 2019
+# fieldgeom = {
+#     "type": "FeatureCollection",
+#     "name": "small_field",
+#     "crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:OGC:1.3:CRS84"}},
+#     "features": [
+#         {"type": "Feature", "properties": {}, "geometry": {"type": "Polygon", "coordinates": [
+#             [[5.0477606, 51.2138409], [5.0477606, 51.2225585], [5.0624407, 51.2225585], [5.0624407, 51.2138409],
+#              [5.0477606, 51.2138409]]]}}
+#     ]
+# }
+#         #        {"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[5.074595,51.229408],[5.074950,51.212771],[5.099565,51.215100],[5.096555,51.229408],[5.074595,51.229408]]]}}
+
 fieldgeom = {
     "type": "FeatureCollection",
     "name": "small_field",
-    "crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:OGC:1.3:CRS84"}},
+    "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
     "features": [
-        {"type": "Feature", "properties": {}, "geometry": {"type": "Polygon", "coordinates": [
-            [[5.0477606, 51.2138409], [5.0477606, 51.2225585], [5.0624407, 51.2225585], [5.0624407, 51.2138409],
-             [5.0477606, 51.2138409]]]}}
-        #        {"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[5.074595,51.229408],[5.074950,51.212771],[5.099565,51.215100],[5.096555,51.229408],[5.074595,51.229408]]]}}
+        { "type": "Feature", "properties": { }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 5.008769, 51.218417 ], [ 5.008769, 51.227135 ], [ 5.023449, 51.227135 ], [ 5.023449, 51.218417 ], [ 5.008769, 51.218417 ] ] ] } }
     ]
 }
+
 
 #############################
 # NON-USER CONFIG
 #############################
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 openeo_url = 'http://openeo-dev.vgt.vito.be/openeo/1.0.0/'
 # openeo_url='https://openeo.vito.be/openeo/1.0.0/'
 
-# startdate=str(year)+'-01-01'
-# enddate=str(year+1)+'-03-31'
-startdate = str(year) + '-08-01'
-enddate = str(year) + '-08-10'
+startdate=str(year-1)+'-10-01'
+enddate=str(year+1)+'-07-01'
+# startdate = str(year) + '-08-01'
+# enddate = str(year) + '-08-10'
 
 job_options = {
     'driver-memory': '8G',
-    'executor-memory': '8G'
+    'executor-memory': '8G',
+    'driver-memoryOverhead': '8G',
+    'executor-memoryOverhead': '8G'
 }
-
 
 #############################
 # CODE
@@ -158,9 +169,19 @@ if __name__ == '__main__':
     S2bands = eoconn.load_collection('TERRASCOPE_S2_TOC_V2', bands=['TOC-B04_10M', 'TOC-B08_10M'])
     S2bands = S2bands.mask(S2mask)
 
+#     try: 
+#         S2bands.filter_temporal(startdate, enddate).filter_bbox(**extent).execute_batch("S2bands.json",out_format='json', job_options=job_options, tiled=True)
+#         logger.info("********** S2 BANDS ************")
+#     except: pass
+
     # prepare the Sentinel-1 bands
     S1bands = eoconn.load_collection('TERRASCOPE_S1_GAMMA0_V1', bands=['VH', 'VV'])
     S1bands = S1bands.resample_cube_spatial(S2bands)
+
+#     try: 
+#         S1bands.filter_temporal(startdate, enddate).filter_bbox(**extent).execute_batch("S1bands.json",out_format='json', job_options=job_options, tiled=True)
+#         logger.info("********** S1 BANDS ************")
+#     except: pass
 
     # merge S1 into S2
     cube = S2bands
@@ -170,8 +191,20 @@ if __name__ == '__main__':
     PVndvi = eoconn.load_collection('PROBAV_L3_S10_TOC_NDVI_333M', bands=['ndvi'])
     PVndvi = PVndvi.resample_cube_spatial(cube)
 
+#     try: 
+#         PVndvi.filter_temporal(startdate, enddate).filter_bbox(**extent).execute_batch("PVbands.json",out_format='json', job_options=job_options, tiled=True)
+#         logger.info("********** PV BANDS ************")
+#     except: pass
+
     # merge ProbaV into S2&S1
     cube = cube.merge(PVndvi)
+    cube = cube.filter_temporal(startdate, enddate).filter_bbox(**extent)
+
+#     try: 
+#         cube.execute_batch("pre_gan.json",out_format='json', job_options=job_options, tiled=True)
+#         logger.info("********** PRE GAN ************")
+#     except: pass
+
 
     # run gan to compute a single NDVI
     gan_udf_code = load_udf('udf_gan.py').replace('prediction_model=""', 'prediction_model="' + openeo_model + '"')
@@ -183,12 +216,25 @@ if __name__ == '__main__':
         {'dimension': 'y', 'value': 8, 'unit': 'px'}
     ])
 
+#     try: 
+#         ndvi_cube.execute_batch("pre_pheno.json",out_format='json', job_options=job_options, tiled=True)
+#         logger.info("********** PRE PHENO ************")
+#     except: pass
+
     # run phenology
-    phenology_cube = ndvi_cube.apply_dimension(utils.load_udf('udf_phenology_optimized.py'), dimension='t',runtime="Python")
+    smoothed_cube =  ndvi_cube.apply_dimension(utils.load_udf('udf_smooth_savitzky_golay.py'), dimension='t',runtime="Python")
+    phenology_cube = smoothed_cube.apply_dimension(utils.load_udf('udf_phenology_optimized.py'), dimension='t',runtime="Python")
 
     phenology_cube.save_user_defined_process("vito_phenology", public=True)
 
-    S2bands.filter_temporal(startdate, enddate).filter_bbox(**extent).download('S2bands.json', format='json')
+    phenology_cube.execute_batch("eos_sos.tif",out_format='GTiff', job_options=job_options, catalog=True)
+
+#     try: 
+#         phenology_cube.execute_batch("finished.json",out_format='json', job_options=job_options, tiled=True)
+#         logger.info("********** FINISHED ************")
+#     except: pass
+
+    #S2bands.filter_temporal(startdate, enddate).filter_bbox(**extent).download('S2bands.json', format='json')
     # S1bands.filter_temporal(startdate,enddate).filter_bbox(**extent).download('S1bands.json',format='json')
     # PVndvi.filter_temporal(startdate,enddate).filter_bbox(**extent).download('PVbands.json',format='json')
     # ndvi_cube.filter_temporal(startdate,enddate).filter_bbox(**extent).execute_batch("gan.tif",job_options=job_options,tiled=True)

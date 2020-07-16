@@ -8,7 +8,6 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
 
     import xarray
     import numpy
-    import pandas
     from scipy.signal import savgol_filter
 
     # access the underlying xarray
