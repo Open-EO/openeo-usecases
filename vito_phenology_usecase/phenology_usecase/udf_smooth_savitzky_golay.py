@@ -8,6 +8,7 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
 
     import xarray
     import numpy
+    import pandas
     from scipy.signal import savgol_filter
 
     # access the underlying xarray
@@ -16,7 +17,7 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
     taxis=inarr.dims.index(tdim)
     
     # create date range with daily resolution (which is the least common denominator with the expected input)
-    year=int(inarr.t.dt.year[0])
+    year=int((inarr.t.min()+(inarr.t.values.max()-inarr.t.min())/2).dt.year)#int(inarr.t.dt.year[0])
     daterange=numpy.arange(numpy.datetime64(str(year)+'-01-01'), numpy.datetime64(str(year+1)+'-04-01'))
     
     # create an xarray that matches input, except the time resolution and copy values over

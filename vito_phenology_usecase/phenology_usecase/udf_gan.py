@@ -22,13 +22,10 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
     B8id='TOC-B08_10M'
     VHid='VH'
     VVid='VV'
+
     prediction_model=""
     
-    time_window_half_days_int=90
-    resample_freq_days_int=5
-    
-    time_window_half=str(time_window_half_days_int)+'D'
-    resample_freq=str(resample_freq_days_int)+'D'
+    time_window_half='90D'
 
     if context is not None:
         prediction_model=context.get('prediction_model',prediction_model)
@@ -115,7 +112,7 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
 
 # TODO: test: window loader in parcelremoves all dateswhere even a single pixel is nodata in any of the variables
 
-        inarr=inarr.ffill(dim='t').resample(t='1D').ffill().resample(t=resample_freq).ffill()
+        inarr=inarr.ffill(dim='t').resample(t='1D').ffill().resample(t='5D').ffill()
         
         # grow it to 5 dimensions
         inarr=inarr.expand_dims(dim=['d0','d5'],axis=[0,5])
@@ -166,25 +163,11 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
     inarr.loc[{'bands':VHid}]=10.*xarray.ufuncs.log10(inarr.sel(bands=VHid))
     inarr.loc[{'bands':VVid}]=10.*xarray.ufuncs.log10(inarr.sel(bands=VVid))
     
-#     print('--- FIRST RENORM ------------')
-#     for i in inarr.bands.values:
-#         iarr=inarr.loc[{'bands':i}]
-#         print(str(i)+": "+str(float(iarr.min()))+" "+str(float(iarr.max())))
-    
-#     print(VHid+": "+str(float(VH.min()))+" "+str(float(VH.max())))
-#     print(VVid+": "+str(float(VV.min()))+" "+str(float(VV.max())))
-#     print(B4id+": "+str(float(B4.min()))+" "+str(float(B4.max())))
-#     print(B8id+": "+str(float(B8.min()))+" "+str(float(B8.max())))
-#     print(PVid+": "+str(float(PV.min()))+" "+str(float(PV.max())))
-    
     # compute windows
     xsize,ysize=inarr.x.shape[0],inarr.y.shape[0]
     windows=computeWindowLists(((0,xsize),(0,ysize)), (xsize,ysize), 128, 8)
     windowlist=list(itertools.chain(*windows))
     
-    # selecting the date in the middle
-    middate=inarr.t.values[0]+0.5*(inarr.t.values[-1]-inarr.t.values[0])
-
     # load the model
     model=load_model(prediction_model)
 
@@ -212,5 +195,5 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
             ires = process_window(data, model, 128, 0.)
             predictions.loc[{'t':idate,'x':range(iwin[0][0],iwin[0][1]),'y':range(iwin[1][0],iwin[1][1])}]=ires
             
-    # behave transparently
+    # return the predictions
     return DataCube(predictions)
