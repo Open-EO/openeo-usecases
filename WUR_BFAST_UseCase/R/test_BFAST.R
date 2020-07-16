@@ -2,7 +2,11 @@ if (!require(devtools)) {
   install.packages("devtools",dependencies=TRUE)
   library(devtools)
 }
-install_github(repo="Open-EO/openeo-r-client@develop",dependencies=TRUE)
+install.packages("remotes")
+
+remotes::install_github(repo="Open-EO/openeo-r-client@develop",dependencies=TRUE)
+
+
 library(openeo)
 
 
@@ -21,7 +25,7 @@ eurac = connect(host = euracHost, version="0.4.2", user = user, password = passw
 p = processes()
 
 # the spatial and temporal exstends should be adopted:
-s1 = p$load_collection(id = p$data$openEO_WUR_UseCase_NoNA, 
+s1 = p$load_collection(id = p$data$openEO_WUR_UseCase_NoNaNs, 
                        spatial_extent = list(west = -54.815,
                                              south = -3.515,
                                              east =  -54.810,
@@ -31,14 +35,21 @@ s1 = p$load_collection(id = p$data$openEO_WUR_UseCase_NoNA,
                        # select the vh band:
                        bands = c('VH'))
 
+# download the input data for the udf (this is just to test the off-line and on-line results):
+job_id = create_job(con = eurac, graph = s1, title = "job2_wur_udf_data", description = "job2_wur_udf_data") 
+start_job(con = eurac, job = job_id)
+doneData = download_results(job = job_id, folder = ".")
+
+
 list_udf_runtimes(eurac)
 describe_process(con = eurac,"load_collection")
 
 # check the WUR test data at EURAC backend:
 list_collections()
-collection_viewer("openEO_WUR_UseCase_NoNA")
-describe_collection(id="openEO_WUR_UseCase_NoNA")
+collection_viewer("openEO_WUR_UseCase_NoNaNs")
+describe_collection(id="openEO_WUR_UseCase_NoNaNs")
 
+# note: please take care of the working directory of your R sesion
 udfName = "BFAST_udf.R"
 udfCode = readChar(udfName, file.info(udfName)$size)
 
@@ -54,28 +65,60 @@ job_id = create_job(con = eurac, graph = graph_test1, title = "job1_wur_udf_rcli
 start_job(con = eurac, job = job_id)
 done = download_results(job = job_id, folder = ".")
 
+# load the result and plot:
+print(done)
+library(sp)
+library(raster)
+outRast = raster(unlist(done))
+# deal with the NaN values
+outRast[outRast==-9999] = NA
+# plotting
+plot(outRast)
+# chek metadata
+print(outRast)
 
 
 
 
 
 
-# --------------------------------------------------------------------------------------
+# compare with the local run output:
+onLineRaster = raster("6ae7aad6-4be2-4c91-b779-2cbac9c0dc95.tiff")
+offLineRaster = raster("offline_bfast_output_v2.tif")
+print(offLineRaster)
+print(onLineRaster)
 
-describe_process(con = eurac,"save_result")
-# test 2 (the simple one)
-udfCode2 = quote({data2 = data*(2); data2})
-graph_test2 = p$run_udf(data = s1, udf = udfCode2, runtime = "R")
-list_file_types()
-graph_test2 = p$save_result(graph_test2, format="netCDF")
-# validate the graph at the client:
-as(graph_test2, "Graph")$validate()
-# validate at server
-validate_process_graph(graph=graph_test2)
+# plloting both outputs
+library(viridisLite)
+library(viridis) 
+par(mfrow=c(1,2))
+plot(offLineRaster, 
+     xlim = c(onLineRaster@extent@xmin, onLineRaster@extent@xmax), 
+     ylim = c(onLineRaster@extent@ymin, onLineRaster@extent@ymax),
+     col=inferno(12), zlim=c(2019,2020))
 #
-compute_result(graph=as(graph_test2, "Graph"), format="netCDF", output_file = 'results_test2.nc')
+plot(onLineRaster,
+     col=inferno(12), zlim=c(2019,2020))
 
 
+# compare the with the data downloaded from the backend:
+euracInput = raster(unlist(doneData))
+# deal with the NaN values
+euracInput[euracInput==-9999] = NA
+# read locan input data:
+offLineInput = raster("s1_vh_2017_2019_aoi_noNaN.tif")
+offLineInput[offLineInput==-9999] = NA
+
+
+# plot
+par(mfrow=c(1,2))
+plot(offLineInput, 
+     xlim = c(euracInput@extent@xmin, euracInput@extent@xmax), 
+     ylim = c(euracInput@extent@ymin, euracInput@extent@ymax),
+     col=inferno(12), zlim=c(2019,2020))
+#
+plot(euracInput,
+     col=inferno(12), zlim=c(2019,2020))
 
 
 
