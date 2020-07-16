@@ -35,6 +35,17 @@ s1 = p$load_collection(id = p$data$openEO_WUR_UseCase_NoNaNs,
                        # select the vh band:
                        bands = c('VH'))
 
+
+s1 = p$load_collection(id = p$data$openEO_WUR_UseCase_NoNaNs, 
+                       spatial_extent = list(west = -54.888,
+                                             south = -3.599,
+                                             east =  -54.710,
+                                             north = -3.418),
+                       # add band selection here
+                       temporal_extent = c("2017-01-01T00:00:00Z","2019-12-29T00:00:00Z"),
+                       # select the vh band:
+                       bands = c('VH'))
+
 # download the input data for the udf (this is just to test the off-line and on-line results):
 job_id = create_job(con = eurac, graph = s1, title = "job2_wur_udf_data", description = "job2_wur_udf_data") 
 start_job(con = eurac, job = job_id)
@@ -83,7 +94,7 @@ print(outRast)
 
 
 # compare with the local run output:
-onLineRaster = raster("6ae7aad6-4be2-4c91-b779-2cbac9c0dc95.tiff")
+onLineRaster = raster("67117f0c-52a5-4be3-ab97-1fcd83bd195a.tiff")
 offLineRaster = raster("offline_bfast_output_v2.tif")
 print(offLineRaster)
 print(onLineRaster)
