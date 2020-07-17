@@ -11,6 +11,9 @@ import os
 import numpy
 import scipy.signal
 from pathlib import Path
+
+from openeo.rest.datacube import DataCube
+
 from phenology_usecase import utils
 
 #############################
@@ -189,7 +192,9 @@ if __name__ == '__main__':
 
     # prepare the ProbaV ndvi band
     PVndvi = eoconn.load_collection('PROBAV_L3_S10_TOC_NDVI_333M', bands=['ndvi'])
-    PVndvi = PVndvi.resample_cube_spatial(cube)
+    PVndvi:DataCube = PVndvi.resample_cube_spatial(S2bands)
+    PVndvi = PVndvi.mask_polygon(polys.geoms[0])
+    #PVndvi.filter_temporal('2019-08-01', '2019-08-01').filter_bbox(**extent).download("probavS2Resolution.tif")
 
 #     try: 
 #         PVndvi.filter_temporal(startdate, enddate).filter_bbox(**extent).execute_batch("PVbands.json",out_format='json', job_options=job_options, tiled=True)
@@ -227,7 +232,7 @@ if __name__ == '__main__':
 
     phenology_cube.save_user_defined_process("vito_phenology", public=True)
 
-    phenology_cube.execute_batch("eos_sos.tif",out_format='GTiff', job_options=job_options, parameters={"catalog":True})
+    phenology_cube.execute_batch("eos_sos.tif",out_format='GTiff', job_options=job_options)#, parameters={"catalog":True}
 
 #     try: 
 #         phenology_cube.execute_batch("finished.json",out_format='json', job_options=job_options, tiled=True)
