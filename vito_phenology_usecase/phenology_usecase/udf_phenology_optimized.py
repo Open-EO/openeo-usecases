@@ -110,8 +110,9 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
     missingmask=isnan(array).any('t')
     array=array.fillna(0.)
 
-    # run phenology bundle    
-    pp=Phenology(int(array.t.dt.year[0]),'t',array.dims.index('t')) 
+    # run phenology bundle
+    year=int((array.t.min()+(array.t.values.max()-array.t.min())/2).dt.year)#int(array.t.dt.year[0])
+    pp=Phenology(year,'t',array.dims.index('t')) 
     seasonMid_MaxGreenness=pp.getLocalMax(array)
     seasonStart_Date=pp.getStartOfSeason(array, seasonMid_MaxGreenness)
     seasonEnd_Date=pp.getEndOfSeason(array, seasonMid_MaxGreenness)

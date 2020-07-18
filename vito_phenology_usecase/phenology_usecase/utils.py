@@ -50,8 +50,8 @@ def resampleXY(xskip,yskip,datacube: DataCube):
 def plot_timeseries(arr):
     
     pyplot.figure(figsize=(19,9.5))
-   
-    days=arr.t.dt.dayofyear+(arr.t.dt.year-arr.t.dt.year[0])*365
+    year=int((arr.t.min()+(arr.t.values.max()-arr.t.min())/2).dt.year)
+    days=arr.t.dt.dayofyear+(arr.t.dt.year-year)*365
     for ix in arr.x.values:
         for iy in arr.y.values:
             if len(arr.x.values)>1 and len(arr.x.values)>1:
@@ -67,4 +67,35 @@ def plot_timeseries(arr):
     pyplot.show()
     pyplot.close()
 
+def print_xarray_dataarray(title,data,to_file=False,to_show=True):
+        
+    vmin=data.min()
+    vmax=data.max()        
+    nrow=data.shape[0]
+    ncol=data.shape[1]
+
+    frame=0.25
+
+    fig = pyplot.figure(figsize=((ncol+frame)*2.56,(nrow+frame)*2.56),dpi=100) 
+    gs = pyplot.GridSpec(nrow,ncol,wspace=0.,hspace=0.,top=nrow/(nrow+frame),bottom=0.,left=frame/(ncol+frame),right=1.) 
+     
+    for i in range(nrow):
+        for j in range(ncol):
+            im = data[i,j]
+            ax= pyplot.subplot(gs[i,j])
+            img=ax.imshow(im,vmin=vmin,vmax=vmax,cmap='terrain')#'jet')
+            ax.set_xticklabels([])
+            ax.set_yticklabels([])
+            if i==0: ax.text(0.5,1.08, data.bands.values[j], size=10, va="center", ha="center", transform=ax.transAxes)
+            if j==0: ax.text(-0.08,0.5, data.t.dt.strftime("%Y-%m-%d").values[i], size=10, va="center", ha="center", rotation=90,  transform=ax.transAxes)
+
+    fig.text(0.,1.,title.split('/')[-1], size=10, va="top", ha="left",weight='bold')
+
+    cbar_ax = fig.add_axes([0.01, 0.25, 0.04, .5])
+    fig.colorbar(img, cax=cbar_ax)
+    
+    if to_file: pyplot.savefig(title+'.png')
+    if to_show: pyplot.show()
+
+    pyplot.close()
 
