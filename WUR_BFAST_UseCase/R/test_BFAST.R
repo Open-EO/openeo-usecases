@@ -25,7 +25,7 @@ eurac = connect(host = euracHost, version="0.4.2", user = user, password = passw
 p = processes()
 
 # the spatial and temporal exstends should be adopted:
-s1 = p$load_collection(id = p$data$openEO_WUR_UseCase_NoNaNs, 
+s1 = p$load_collection(id = p$data$openEO_WUR_UseCase_NoNaNs,
                        spatial_extent = list(west = -54.815,
                                              south = -3.515,
                                              east =  -54.810,
@@ -36,15 +36,17 @@ s1 = p$load_collection(id = p$data$openEO_WUR_UseCase_NoNaNs,
                        bands = c('VH'))
 
 
-s1 = p$load_collection(id = p$data$openEO_WUR_UseCase_NoNaNs, 
-                       spatial_extent = list(west = -54.888,
-                                             south = -3.599,
-                                             east =  -54.710,
-                                             north = -3.418),
-                       # add band selection here
-                       temporal_extent = c("2017-01-01T00:00:00Z","2019-12-29T00:00:00Z"),
-                       # select the vh band:
-                       bands = c('VH'))
+# s1 = p$load_collection(id = p$data$openEO_WUR_UseCase_NoNaNs, 
+#                        spatial_extent = list(west = -54.88778740,
+#                                              south = -3.59408239,
+#                                              east =  -54.70898726,
+#                                              north = -3.42179801),
+#                        # add band selection here
+#                        temporal_extent = c("2017-01-01T00:00:00Z","2019-12-29T00:00:00Z"),
+#                        # select the vh band:
+#                        bands = c('VH'))
+
+
 
 # download the input data for the udf (this is just to test the off-line and on-line results):
 job_id = create_job(con = eurac, graph = s1, title = "job2_wur_udf_data", description = "job2_wur_udf_data") 
@@ -95,7 +97,8 @@ print(outRast)
 
 # compare with the local run output:
 onLineRaster = raster("67117f0c-52a5-4be3-ab97-1fcd83bd195a.tiff")
-offLineRaster = raster("offline_bfast_output_v2.tif")
+# offLineRaster = raster("offline_bfast_output_v2.tif")
+offLineRaster = raster("offline_bfast_output_largeArea.tif")
 print(offLineRaster)
 print(onLineRaster)
 
@@ -130,6 +133,5 @@ plot(offLineInput,
 #
 plot(euracInput,
      col=inferno(12), zlim=c(2019,2020))
-
 
 
