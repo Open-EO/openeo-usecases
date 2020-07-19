@@ -151,7 +151,8 @@ def create_advanced_mask(band, band_math_workaround=True):
 if __name__ == '__main__':
     # find the utm zone in epsg code for lat/lon of centroid
     geo = shapely.geometry.GeometryCollection(
-        [shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in fieldgeom["features"]])
+        [shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in fieldgeom["features"]]
+    )
     epsgcode = epsg_code((geo.centroid.x, geo.centroid.y))
 
     polys = shapely.geometry.GeometryCollection(
@@ -159,6 +160,7 @@ if __name__ == '__main__':
     bbox = polys.bounds
     extent = dict(zip(["west", "south", "east", "north"], bbox))
     extent['crs'] = "EPSG:4326"
+    bboxpoly=shapely.geometry.Polygon.from_bounds(*polys.bounds)
 
     # connection
     eoconn = openeo.connect(openeo_url)
@@ -193,7 +195,7 @@ if __name__ == '__main__':
     # prepare the ProbaV ndvi band
     PVndvi = eoconn.load_collection('PROBAV_L3_S10_TOC_NDVI_333M', bands=['ndvi'])
     PVndvi:DataCube = PVndvi.resample_cube_spatial(S2bands)
-    PVndvi = PVndvi.mask_polygon(polys.geoms[0])
+    PVndvi = PVndvi.mask_polygon(bboxpoly)
     #PVndvi.filter_temporal('2019-08-01', '2019-08-01').filter_bbox(**extent).download("probavS2Resolution.tif")
 
 #     try: 
@@ -204,7 +206,7 @@ if __name__ == '__main__':
     # merge ProbaV into S2&S1
     cube = cube.merge(PVndvi)
     cube = cube.filter_temporal(startdate, enddate).filter_bbox(**extent)
-
+    
 #     try: 
 #         cube.execute_batch("pre_gan.json",out_format='json', job_options=job_options, tiled=True)
 #         logger.info("********** PRE GAN ************")
@@ -220,6 +222,10 @@ if __name__ == '__main__':
         {'dimension': 'x', 'value': 8, 'unit': 'px'},
         {'dimension': 'y', 'value': 8, 'unit': 'px'}
     ])
+
+    cube.execute_batch("gan.json",out_format='json', job_options=job_options)
+    exit(0)
+
 
 #     try: 
 #         ndvi_cube.execute_batch("pre_pheno.json",out_format='json', job_options=job_options, tiled=True)
