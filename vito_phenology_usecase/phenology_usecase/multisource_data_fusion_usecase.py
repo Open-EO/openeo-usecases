@@ -11,10 +11,8 @@ import os
 import numpy
 import scipy.signal
 from pathlib import Path
-
-from openeo.rest.datacube import DataCube
-
 from phenology_usecase import utils
+import re
 
 #############################
 # USER INPUT
@@ -74,13 +72,13 @@ job_options = {
 #############################
 
 
-def get_resource(relative_path):
-    return str(Path(relative_path))
-
-
-def load_udf(relative_path):
-    with open(get_resource(relative_path), 'r+') as f:
-        return f.read()
+class UDFString():
+    def __init__(self, filename):
+        with open(str(Path(filename)), 'r+') as f:
+            self.value=f.read()
+    def replace_option(self,option,new_value):
+        self.value=re.sub('(\n\s*'+option+'\s*=).*\n','\\1 '+new_value+'\n',self.value,count=1)
+        return self
 
 
 def utm_zone(coordinates):
@@ -149,16 +147,12 @@ def create_advanced_mask(band, band_math_workaround=True):
 
 
 if __name__ == '__main__':
-    # find the utm zone in epsg code for lat/lon of centroid
-    geo = shapely.geometry.GeometryCollection(
-        [shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in fieldgeom["features"]]
-    )
-    epsgcode = epsg_code((geo.centroid.x, geo.centroid.y))
 
+    # find the extents, utm zone in epsg code for lat/lon of centroid and the bounding box polygon
     polys = shapely.geometry.GeometryCollection(
         [shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in fieldgeom["features"]])
-    bbox = polys.bounds
-    extent = dict(zip(["west", "south", "east", "north"], bbox))
+    epsgcode = epsg_code((polys.centroid.x, polys.centroid.y))
+    extent = dict(zip(["west", "south", "east", "north"], polys.bounds))
     extent['crs'] = "EPSG:4326"
     bboxpoly=shapely.geometry.Polygon.from_bounds(*polys.bounds)
 
@@ -166,27 +160,16 @@ if __name__ == '__main__':
     eoconn = openeo.connect(openeo_url)
     eoconn.authenticate_basic(openeo_user, openeo_pass)
 
+    # prepare the Sentinel-2 bands via masking by the scene classification layer 
     s2_sceneclassification = eoconn.load_collection('TERRASCOPE_S2_TOC_V2', bands=['SCENECLASSIFICATION_20M']) \
         .band('SCENECLASSIFICATION_20M')
-    # prepare the Sentinel-2 bands
     S2mask = create_advanced_mask(s2_sceneclassification)
-
     S2bands = eoconn.load_collection('TERRASCOPE_S2_TOC_V2', bands=['TOC-B04_10M', 'TOC-B08_10M'])
     S2bands = S2bands.mask(S2mask)
-
-#     try: 
-#         S2bands.filter_temporal(startdate, enddate).filter_bbox(**extent).execute_batch("S2bands.json",out_format='json', job_options=job_options, tiled=True)
-#         logger.info("********** S2 BANDS ************")
-#     except: pass
 
     # prepare the Sentinel-1 bands
     S1bands = eoconn.load_collection('TERRASCOPE_S1_GAMMA0_V1', bands=['VH', 'VV'])
     S1bands = S1bands.resample_cube_spatial(S2bands)
-
-#     try: 
-#         S1bands.filter_temporal(startdate, enddate).filter_bbox(**extent).execute_batch("S1bands.json",out_format='json', job_options=job_options, tiled=True)
-#         logger.info("********** S1 BANDS ************")
-#     except: pass
 
     # merge S1 into S2
     cube = S2bands
@@ -194,18 +177,13 @@ if __name__ == '__main__':
 
     # prepare the ProbaV ndvi band
     PVndvi = eoconn.load_collection('PROBAV_L3_S10_TOC_NDVI_333M', bands=['ndvi'])
-    PVndvi:DataCube = PVndvi.resample_cube_spatial(S2bands)
+    PVndvi = PVndvi.resample_cube_spatial(S2bands)
     PVndvi = PVndvi.mask_polygon(bboxpoly)
-    #PVndvi.filter_temporal('2019-08-01', '2019-08-01').filter_bbox(**extent).download("probavS2Resolution.tif")
-
-#     try: 
-#         PVndvi.filter_temporal(startdate, enddate).filter_bbox(**extent).execute_batch("PVbands.json",out_format='json', job_options=job_options, tiled=True)
-#         logger.info("********** PV BANDS ************")
-#     except: pass
 
     # merge ProbaV into S2&S1
     cube = cube.merge(PVndvi)
     cube = cube.filter_temporal(startdate, enddate).filter_bbox(**extent)
+
     
 #     try: 
 #         cube.execute_batch("pre_gan.json",out_format='json', job_options=job_options, tiled=True)
@@ -214,7 +192,7 @@ if __name__ == '__main__':
 
 
     # run gan to compute a single NDVI
-    gan_udf_code = load_udf('udf_gan.py').replace('prediction_model=""', 'prediction_model="' + openeo_model + '"')
+    gan_udf_code = UDFString('udf_gan.py').replace_option('prediction_model', '"'+openeo_model+'"').value
     ndvi_cube = cube.apply_neighborhood(openeo.UDF(code=gan_udf_code, runtime="Python",data={'from_parameter': 'data'}), size=[
         {'dimension': 'x', 'value': 112, 'unit': 'px'},
         {'dimension': 'y', 'value': 112, 'unit': 'px'}
@@ -223,7 +201,7 @@ if __name__ == '__main__':
         {'dimension': 'y', 'value': 8, 'unit': 'px'}
     ])
 
-    cube.execute_batch("gan.json",out_format='json', job_options=job_options)
+    ndvi_cube.execute_batch("gan.json",out_format='json', job_options=job_options)
     exit(0)
 
 
