@@ -11,7 +11,6 @@ import os
 import numpy
 import scipy.signal
 from pathlib import Path
-from phenology_usecase import utils
 import re
 
 #############################
@@ -61,10 +60,10 @@ enddate=str(year+1)+'-07-01'
 # enddate = str(year) + '-08-10'
 
 job_options = {
-    'driver-memory': '8G',
-    'executor-memory': '8G',
-    'driver-memoryOverhead': '8G',
-    'executor-memoryOverhead': '8G'
+    'driver-memory': '4G',
+    'executor-memory': '4G'
+#    'driver-memoryOverhead': '8G',
+#    'executor-memoryOverhead': '8G'
 }
 
 #############################
@@ -172,8 +171,8 @@ if __name__ == '__main__':
     S1bands = S1bands.resample_cube_spatial(S2bands)
 
     # merge S1 into S2
-    cube = S2bands
-    cube = cube.merge(S1bands)
+    merged_cube = S2bands
+    merged_cube = merged_cube.merge(S1bands)
 
     # prepare the ProbaV ndvi band
     PVndvi = eoconn.load_collection('PROBAV_L3_S10_TOC_NDVI_333M', bands=['ndvi'])
@@ -181,50 +180,27 @@ if __name__ == '__main__':
     PVndvi = PVndvi.mask_polygon(bboxpoly)
 
     # merge ProbaV into S2&S1
-    cube = cube.merge(PVndvi)
-    cube = cube.filter_temporal(startdate, enddate).filter_bbox(**extent)
-
-    
-#     try: 
-#         cube.execute_batch("pre_gan.json",out_format='json', job_options=job_options, tiled=True)
-#         logger.info("********** PRE GAN ************")
-#     except: pass
-
+    merged_cube = merged_cube.merge(PVndvi)
+    merged_cube = merged_cube.filter_temporal(startdate, enddate).filter_bbox(**extent)
 
     # run gan to compute a single NDVI
     gan_udf_code = UDFString('udf_gan.py').replace_option('prediction_model', '"'+openeo_model+'"').value
-    ndvi_cube = cube.apply_neighborhood(openeo.UDF(code=gan_udf_code, runtime="Python",data={'from_parameter': 'data'}), size=[
+    ndvi_cube = merged_cube.apply_neighborhood(openeo.UDF(code=gan_udf_code, runtime="Python",data={'from_parameter': 'data'}), size=[
         {'dimension': 'x', 'value': 112, 'unit': 'px'},
         {'dimension': 'y', 'value': 112, 'unit': 'px'}
     ], overlap=[
         {'dimension': 'x', 'value': 8, 'unit': 'px'},
         {'dimension': 'y', 'value': 8, 'unit': 'px'}
     ])
-
-    ndvi_cube.execute_batch("gan.json",out_format='json', job_options=job_options)
-    exit(0)
-
-
-#     try: 
-#         ndvi_cube.execute_batch("pre_pheno.json",out_format='json', job_options=job_options, tiled=True)
-#         logger.info("********** PRE PHENO ************")
-#     except: pass
+    ndvi_cube=ndvi_cube.add_dimension("bands", "ndvi", type="bands").band("ndvi")
 
     # run phenology
-    smoothed_cube =  ndvi_cube.apply_dimension(utils.load_udf('udf_smooth_savitzky_golay.py'), dimension='t',runtime="Python")
-    phenology_cube = smoothed_cube.apply_dimension(utils.load_udf('udf_phenology_optimized.py'), dimension='t',runtime="Python")
+    smoothed_cube =  ndvi_cube.apply_dimension(UDFString('udf_smooth_savitzky_golay.py').value, dimension='t',runtime="Python")
+    phenology_cube = smoothed_cube.apply_dimension(UDFString('udf_phenology_optimized.py').value, dimension='t',runtime="Python")
 
+    # execute the process
     phenology_cube.save_user_defined_process("vito_phenology", public=True)
+#    phenology_cube.execute_batch("vito_phenology.json",out_format='json', job_options=job_options)
+    phenology_cube.execute_batch("vito_phenology.nc",out_format='netcdf', job_options=job_options)
 
-    phenology_cube.execute_batch("eos_sos.tif",out_format='GTiff', job_options=job_options)#, parameters={"catalog":True}
-
-#     try: 
-#         phenology_cube.execute_batch("finished.json",out_format='json', job_options=job_options, tiled=True)
-#         logger.info("********** FINISHED ************")
-#     except: pass
-
-    #S2bands.filter_temporal(startdate, enddate).filter_bbox(**extent).download('S2bands.json', format='json')
-    # S1bands.filter_temporal(startdate,enddate).filter_bbox(**extent).download('S1bands.json',format='json')
-    # PVndvi.filter_temporal(startdate,enddate).filter_bbox(**extent).download('PVbands.json',format='json')
-    # ndvi_cube.filter_temporal(startdate,enddate).filter_bbox(**extent).execute_batch("gan.tif",job_options=job_options,tiled=True)
     logger.info('FINISHED')
