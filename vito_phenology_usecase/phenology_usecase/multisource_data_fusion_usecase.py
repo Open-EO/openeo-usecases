@@ -22,17 +22,6 @@ openeo_pass = os.environ.get('OPENEO_PASS', 'wrong_password')
 openeo_model = os.environ.get('OPENEO_MODEL', 'wrong_model')
 
 year = 2019
-# fieldgeom = {
-#     "type": "FeatureCollection",
-#     "name": "small_field",
-#     "crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:OGC:1.3:CRS84"}},
-#     "features": [
-#         {"type": "Feature", "properties": {}, "geometry": {"type": "Polygon", "coordinates": [
-#             [[5.0477606, 51.2138409], [5.0477606, 51.2225585], [5.0624407, 51.2225585], [5.0624407, 51.2138409],
-#              [5.0477606, 51.2138409]]]}}
-#     ]
-# }
-#         #        {"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[5.074595,51.229408],[5.074950,51.212771],[5.099565,51.215100],[5.096555,51.229408],[5.074595,51.229408]]]}}
 
 fieldgeom = {
     "type": "FeatureCollection",
@@ -49,7 +38,7 @@ fieldgeom = {
 #############################
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 openeo_url = 'http://openeo-dev.vgt.vito.be/openeo/1.0.0/'
 # openeo_url='https://openeo.vito.be/openeo/1.0.0/'
@@ -60,7 +49,7 @@ enddate=str(year+1)+'-07-01'
 # enddate = str(year) + '-08-10'
 
 job_options = {
-    'driver-memory': '4G',
+    'driver-memory': '8G',
     'executor-memory': '4G'
 #    'driver-memoryOverhead': '8G',
 #    'executor-memoryOverhead': '8G'
@@ -165,18 +154,24 @@ if __name__ == '__main__':
     S2mask = create_advanced_mask(s2_sceneclassification)
     S2bands = eoconn.load_collection('TERRASCOPE_S2_TOC_V2', bands=['TOC-B04_10M', 'TOC-B08_10M'])
     S2bands = S2bands.mask(S2mask)
+    
+    # compute NDVI for Sentinel2
+    B4band = S2bands.band('TOC-B04_10M')
+    B8band = S2bands.band('TOC-B08_10M')
+    S2ndvi = (B8band-B4band)/(B8band+B4band)
+    S2ndvi = S2ndvi.add_dimension("bands", "S2ndvi", type="bands")
 
     # prepare the Sentinel-1 bands
     S1bands = eoconn.load_collection('TERRASCOPE_S1_GAMMA0_V1', bands=['VH', 'VV'])
-    S1bands = S1bands.resample_cube_spatial(S2bands)
+    S1bands = S1bands.resample_cube_spatial(S2ndvi)
 
     # merge S1 into S2
-    merged_cube = S2bands
+    merged_cube = S2ndvi
     merged_cube = merged_cube.merge(S1bands)
 
     # prepare the ProbaV ndvi band
     PVndvi = eoconn.load_collection('PROBAV_L3_S10_TOC_NDVI_333M', bands=['ndvi'])
-    PVndvi = PVndvi.resample_cube_spatial(S2bands)
+    PVndvi = PVndvi.resample_cube_spatial(S2ndvi)
     PVndvi = PVndvi.mask_polygon(bboxpoly)
 
     # merge ProbaV into S2&S1
