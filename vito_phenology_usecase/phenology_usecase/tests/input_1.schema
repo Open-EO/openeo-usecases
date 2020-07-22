@@ -1,1 +1,0 @@
-{"dims": ["t", "bands", "x", "y"], "attrs": {}, "dtype": "float64", "shape": [178, 1, 1, 1], "coords": {"t": {"dims": ["t"], "attrs": {}, "dtype": "datetime64[ns]", "shape": [178]}, "bands": {"dims": ["bands"], "attrs": {}, "dtype": "<U5", "shape": [1]}}, "name": "openEODataChunk"}
