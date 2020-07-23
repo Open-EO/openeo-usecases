@@ -37,7 +37,7 @@ fieldgeom = {
 #############################
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 openeo_url = 'http://openeo-dev.vgt.vito.be/openeo/1.0.0/'
 # openeo_url='https://openeo.vito.be/openeo/1.0.0/'
@@ -50,8 +50,6 @@ enddate=str(year+1)+'-07-01'
 job_options = {
     'driver-memory': '8G',
     'executor-memory': '4G'
-#    'driver-memoryOverhead': '8G',
-#    'executor-memoryOverhead': '8G'
 }
 
 #############################

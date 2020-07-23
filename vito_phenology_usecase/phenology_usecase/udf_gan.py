@@ -80,16 +80,6 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
 
     def process_window(inarr, model, scaler, windowsize=128, nodata=0):
     
-# SKIPPING THIS BECAUSE RELYING ON PROPERLY SETTING FILTER TEMPORAL IN THE OPENEO PROCESS
-# THIS MIGHT THROWS NOT ALL DIMENSIONS FOUND IN t: output_index DATE RANGE IS BIGGER THAN WHAT IS IN INARR
-#         # select +-90days interval relative to acquisitiondate
-#         output_index = pd.date_range(acquisitiondate - pd.to_timedelta('90D'),
-#                                      acquisitiondate + pd.to_timedelta('90D'),
-#                                      freq='5D')
-#         inarr=inarr.ffill(dim='t').resample(t='1D').ffill().sel({'t': output_index}, method='ffill')
-
-# TODO: test: window loader in parcelremoves all dateswhere even a single pixel is nodata in any of the variables
-
         inarr=inarr.ffill(dim='t').resample(t='1D').ffill().resample(t=gan_steps).ffill()
         
         # older tensorflows expect exact number of samples in every dimension
