@@ -25,33 +25,39 @@ eurac = connect(host = euracHost, version="0.4.2", user = user, password = passw
 p = processes()
 
 # the spatial and temporal exstends should be adopted:
+# s1 = p$load_collection(id = p$data$openEO_WUR_UseCase_NoNaNs,
+#                        spatial_extent = list(west = -54.815,
+#                                              south = -3.515,
+#                                              east =  -54.810,
+#                                              north = -3.510),
+#                        # add band selection here
+#                        temporal_extent = c("2017-01-01T00:00:00Z","2019-12-29T00:00:00Z"),
+#                        # select the vh band:
+#                        bands = c('VH'))
+
+9611198
+742740
+9611750
+743297
+
+
+
 s1 = p$load_collection(id = p$data$openEO_WUR_UseCase_NoNaNs,
-                       spatial_extent = list(west = -54.815,
-                                             south = -3.515,
-                                             east =  -54.810,
-                                             north = -3.510),
+                       spatial_extent = list(west = -54.88778740,
+                                             south = -3.59408239,
+                                             east =  -54.70898726,
+                                             north = -3.42179801),
                        # add band selection here
                        temporal_extent = c("2017-01-01T00:00:00Z","2019-12-29T00:00:00Z"),
                        # select the vh band:
                        bands = c('VH'))
 
 
-# s1 = p$load_collection(id = p$data$openEO_WUR_UseCase_NoNaNs, 
-#                        spatial_extent = list(west = -54.88778740,
-#                                              south = -3.59408239,
-#                                              east =  -54.70898726,
-#                                              north = -3.42179801),
-#                        # add band selection here
-#                        temporal_extent = c("2017-01-01T00:00:00Z","2019-12-29T00:00:00Z"),
-#                        # select the vh band:
-#                        bands = c('VH'))
-
-
 
 # download the input data for the udf (this is just to test the off-line and on-line results):
-job_id = create_job(con = eurac, graph = s1, title = "job2_wur_udf_data", description = "job2_wur_udf_data") 
-start_job(con = eurac, job = job_id)
-doneData = download_results(job = job_id, folder = ".")
+# job_id = create_job(con = eurac, graph = s1, title = "job2_wur_udf_data", description = "job2_wur_udf_data") # 
+# start_job(con = eurac, job = job_id)
+# doneData = download_results(job = job_id, folder = ".")
 
 
 list_udf_runtimes(eurac)
