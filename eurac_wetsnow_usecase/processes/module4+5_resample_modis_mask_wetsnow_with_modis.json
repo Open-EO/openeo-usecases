@@ -1,0 +1,103 @@
+{
+  "1": {
+    "process_id": "load_collection",
+    "arguments": {
+      "id": "EURAC_SNOW_CLOUDREMOVAL_MODIS_ALPS_LAEA",
+      "spatial_extent": {
+        "east": 11.416511535644531,
+        "south": 46.406617041056165,
+        "north": 46.550361051816196,
+        "west": 11.257896423339844
+      },
+      "temporal_extent": [
+        "2015-11-06T00:00:00.000Z",
+        "2016-09-25T00:00:00.000Z"
+      ],
+      "properties": null
+    }
+  },
+  "2": {
+    "process_id": "load_collection",
+    "arguments": {
+      "id": "Backscatter_Sentinel1_Track015",
+      "spatial_extent": {
+        "west": 6.848878525358148,
+        "east": 11.94569379468816,
+        "south": 43.4104550560061,
+        "north": 48.0969404605815
+      },
+      "temporal_extent": [
+        "2014-11-11T00:00:00.000Z",
+        "2016-09-25T00:00:00.000Z"
+      ],
+      "properties": null
+    }
+  },
+  "3": {
+    "process_id": "resample_cube_spatial",
+    "arguments": {
+      "data": {
+        "from_node": "1"
+      },
+      "target": {
+        "from_node": "2"
+      }
+    }
+  },
+  "4": {
+    "process_id": "resample_cube_spatial",
+    "arguments": {
+      "data": {
+        "from_node": "3"
+      },
+      "target": {
+        "from_node": "2"
+      }
+    }
+  },
+  "6": {
+    "process_id": "apply",
+    "arguments": {
+      "data": {
+        "from_node": "4"
+      },
+      "process": {
+        "callback": {
+          "2": {
+            "process_id": "eq",
+            "arguments": {
+              "x": {
+                "from_argument": "x"
+              },
+              "y": 2,
+              "delta": null
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "7": {
+    "process_id": "mask_custom",
+    "arguments": {
+      "data": {
+        "from_node": "2"
+      },
+      "mask": {
+        "from_node": "6"
+      }
+    }
+  },
+  "8": {
+    "process_id": "save_result",
+    "arguments": {
+      "data": {
+        "from_node": "7"
+      },
+      "format": "NETCDF",
+      "options": {}
+    },
+    "result": true
+  }
+}
