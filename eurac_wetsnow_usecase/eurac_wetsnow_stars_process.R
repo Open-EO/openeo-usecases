@@ -1,6 +1,5 @@
 # eurac use case with stars
 
-
 # libs -------------------------------------------------------------------------
 library("stars")
 library("sf")
@@ -24,11 +23,17 @@ backscatter_prox = st_set_dimensions(.x = backscatter_prox, which = "time",
                                      values = time_s1a)
 
 # prepare bbox for subsetting proxy object
+# weisskugel area
 aoi = st_bbox(c(xmin = 10.570392608642578, 
                 ymin = 46.78148963659169, 
                 xmax = 10.777416229248047, 
                 ymax = 46.85244345762143), 
               crs = 4326)
+# south tyrol
+# not readable into r... too big... not even 2 timesteps
+# aoi = read_sf("/mnt/CEPH_BASEDATA/GIS/REGIONAL/SOUTHTYROL/BOUNDARIES/NUTS3/SouthTyrol_gcs.kml")
+# aoi = st_bbox(aoi)
+
 aoi = st_transform(x = st_as_sfc(aoi), crs = st_crs(backscatter_prox))
 
 # subset on proxy
@@ -117,8 +122,9 @@ w = st_apply(lia, MARGIN = c("x", "y"), FUN = function(x){
 #        rc_ls[[21]],rc_ls[[22]])
 # rc = stars::st_redimension(rc, new_dims = st_dimensions(rc), along = list(time = names(rc)))
 # rc = stars::st_set_dimensions(rc, "time", values = time_s1a)
+# farmerversion: end ------------------------------------------------------------
 
-# desired version and tests ------------------------------------------------
+# desired version and tests ----------------------------------------------------
 # # calc rc combined vh_ratio, vv_ratio and w with stars
 # # merge vh and vv ratio together to a datacube
 # vh_vv_ratio = c(vh_ratio, vv_ratio)
@@ -142,7 +148,7 @@ w = st_apply(lia, MARGIN = c("x", "y"), FUN = function(x){
 # rc6 = st_apply(X = vh_vv_ratio, MARGIN = c("x", "y", "time"), FUN = function(x){
 #   x[1]+x[2]
 # })
-
+# desired version and tests: end -----------------------------------------------
 
 # calculate rc layer -----------------------------------------------------------
 # calculate first part of function
@@ -170,10 +176,10 @@ wet_snow_rc = st_apply(rc, MARGIN = c("time"), FUN = function(x){
   case_when(x < thr ~ 1, # wet snow
             x >= thr ~ 2) # no wet snow
 })
-plot(wet_snow_rc) # kann das stimmen??? kaum wet snow
-lapply(1:22, function(x)(
-  table(wet_snow_rc %>% slice(time, x))
-))
+# plot(wet_snow_rc) # kann das stimmen??? kaum wet snow
+# lapply(1:22, function(x)(
+#   table(wet_snow_rc %>% slice(time, x))
+# ))
 
 # create overlay and shadow mask from lia
 lia_mask = st_apply(lia, MARGIN = c("x", "y"), FUN = function(x){
@@ -181,13 +187,13 @@ lia_mask = st_apply(lia, MARGIN = c("x", "y"), FUN = function(x){
             x < 25 ~ 0, # overlay
             TRUE ~ 1)  # ok
 })
-plot(lia_mask)
+# plot(lia_mask)
 
 # apply mask to initial wet snow classification
 wet_snow = st_apply(wet_snow_rc, MARGIN = c("time"), FUN = function(x){
   lia_mask$S1A_IW_GRDH_20141205T171502_015_LIA_eurac.vrt * x
 })
-plot(wet_snow)
+# plot(wet_snow, col = c("black", "blue", "red"))
 
 # ---------------------------------------------------------------------------- #
 # module 4: add modis snow cover ----
@@ -200,14 +206,23 @@ plot(wet_snow)
 # multiply
 
 # make modis file list
-pth_mod_2015 = "/mnt/CEPH_PRODUCTS/EURAC_SNOW/MODIS/ST/2015/"
-pth_mod_2016 = "/mnt/CEPH_PRODUCTS/EURAC_SNOW/MODIS/ST/2016/"
-files_mod = list.files(path = c(pth_mod_2015, pth_mod_2016), pattern = ".tif", full.names = TRUE)
+# # daily
+# pth_mod_2015 = "/mnt/CEPH_PRODUCTS/EURAC_SNOW/MODIS/ST/2015/"
+# pth_mod_2016 = "/mnt/CEPH_PRODUCTS/EURAC_SNOW/MODIS/ST/2016/"
+# files_mod = list.files(path = c(pth_mod_2015, pth_mod_2016), pattern = ".tif", full.names = TRUE)
+# # 15d
+# pth_mod = "/mnt/CEPH_PRODUCTS/EURAC_SNOW_COMPOSITE_P_CMF/MODIS/alps/"
+# files_mod = list.files(path = pth_mod, pattern = ".tif", full.names = TRUE)
+
+# newest version as on rasdaman
+pth_mod = "/mnt/CEPH_PROJECTS/SNOW_3rd_gen/CLOUDREMOVAL/v1.2/05_temporal_complete_max10d"
+files_mod = list.files(path = pth_mod, pattern = ".tif", full.names = TRUE)
 
 # get modis dates
 files_mod = data.frame(path = files_mod, 
-                      date = gsub(pattern = ".*([[:digit:]]{8})T.*", replacement = "\\1", x = files_mod), 
-                      stringsAsFactors = FALSE)
+                       #date = gsub(pattern = ".*([[:digit:]]{8})T.*", replacement = "\\1", x = files_mod),
+                       date = gsub(pattern = ".*([[:digit:]]{8})_.*", replacement = "\\1", x = files_mod),
+                       stringsAsFactors = FALSE)
 files_mod$date = as.Date(files_mod$date, "%Y%m%d")
 
 # get available s1 wet snow dates
@@ -216,7 +231,10 @@ s1_dates = as.Date(stars::st_get_dimension_values(wet_snow, "time"), "%Y-%m-%d")
 # resample temporal - get the matching dates
 files_mod = files_mod[files_mod$date %in% s1_dates, ]
 length(s1_dates) == nrow(files_mod)
-# get closest dates here, so that all dates are matched
+# TODO: get closest dates here in case not matching on day, so that all dates are matched
+file.exists(files_mod$path)
+# is upon reading there are corrupt files replace them here
+# files_mod[files_mod$date == "2016-03-05", "path"] = "/mnt/CEPH_PRODUCTS/EURAC_SNOW_COMPOSITE_P_CMF/MODIS/alps//20160306_MOD_CM-SNWF_05745090-AA.tif"
 
 # load modis data
 modis_prox = read_stars(.x = files_mod$path, along = "time", proxy = TRUE)
@@ -229,17 +247,46 @@ modis_prox = modis_prox[aoi]
 
 # fetch the data - only reading the subsetted part!
 modis = st_as_stars(modis_prox, along = "time")
-
 # remove quality band
 modis = modis %>% slice("band", 1)
 plot(modis) # 0 = no data, 1= snow , 2= no snow, 3= cloud 
 
-#-> is there a composite product?
-
 # resample spatial
+modis_res = stars::st_warp(src = modis, dest = wet_snow)
+st_crs(modis) = st_crs(wet_snow)
+st_crs(wet_snow)
+# add modis snow cover info to s1 wet snow map as a band
+wet_snow_mod = c(wet_snow, modis_res, along = "band")
+plot(wet_snow_mod %>% slice(time, 1))
 
-# add modis snow cover info to s1 wet snow map
+# apply classification based on two bands
+# takes too long
 
+wet_snow_fin = st_apply(X = wet_snow_mod, MARGIN = c("x", "y", "time"), FUN = function(x){
+  case_when(x[2] == 2  ~ 1, # no snow 
+            x[2] == 1 & x[1] == 1 ~ 2, # wet snow  
+            x[2] == 1 & x[1] == 2 ~ 3, # dry snow
+            x[2] == 1 & x[1] == 0 ~ 4, # uncl. snow
+            TRUE ~ 5)
+})
+
+# multiplication would also work here instead case_when
+# modis
+# 1 snow
+# 2 no snow
+# s1
+# 1 wet snow
+# 2 dry snow
+# 0 shadow
+
+# save
+# stars::write_stars(obj = wet_snow_fin, dsn = "eurac_wetsnow_stars_process.nc", driver = "netCDF") # doesn't give bandnames (dates)
+save(wet_snow_fin, file = "/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wetsnow_usecase/eurac_wetsnow_stars_process.rdata")
+wet_snow_fin
+
+# plot with background map and transparency
+
+# get timeseries for pixel in vally, on glacier and non glacier mountain
 
 # further ideas ----
 # visualize as gif

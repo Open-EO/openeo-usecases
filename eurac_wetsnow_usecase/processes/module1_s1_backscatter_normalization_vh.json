@@ -1,0 +1,107 @@
+{
+  "1": {
+    "process_id": "load_collection",
+    "arguments": {
+      "id": "Backscatter_Sentinel1_Track015",
+      "spatial_extent": {
+        "east": 11.416511535644531,
+        "south": 46.406617041056165,
+        "north": 46.550361051816196,
+        "west": 11.257896423339844
+      },
+      "temporal_extent": [
+        "2015-11-06T00:00:00.000Z",
+        "2016-09-25T00:00:00.000Z"
+      ]
+    }
+  },
+  "2": {
+    "process_id": "filter_bands",
+    "arguments": {
+      "data": {
+        "from_node": "1"
+      },
+      "bands": [
+        "VH"
+      ],
+      "common_names": [],
+      "wavelengths": []
+    }
+  },
+  "3": {
+    "process_id": "reduce",
+    "arguments": {
+      "data": {
+        "from_node": "2"
+      },
+      "reducer": {
+        "callback": {
+          "2": {
+            "process_id": "max",
+            "arguments": {
+              "data": {
+                "from_argument": "data"
+              }
+            },
+            "result": true
+          }
+        }
+      },
+      "dimension": "temporal",
+      "target_dimension": null
+    }
+  },
+  "4": {
+    "process_id": "filter_bands",
+    "arguments": {
+      "data": {
+        "from_node": "1"
+      },
+      "bands": [
+        "VH"
+      ],
+      "common_names": [],
+      "wavelengths": []
+    }
+  },
+  "5": {
+    "process_id": "merge_cubes",
+    "arguments": {
+      "cube1": {
+        "from_node": "4"
+      },
+      "cube2": {
+        "from_node": "3"
+      },
+      "overlap_resolver": {
+        "callback": {
+          "3": {
+            "process_id": "subtract",
+            "arguments": {
+              "data": [
+                {
+                  "from_argument": "x"
+                },
+                {
+                  "from_argument": "y"
+                }
+              ]
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "6": {
+    "process_id": "save_result",
+    "arguments": {
+      "data": {
+        "from_node": "5"
+      },
+      "format": "NETCDF",
+      "options": {}
+    },
+    "result": true
+  }
+}

@@ -1,0 +1,296 @@
+{
+  "1": {
+    "process_id": "load_collection",
+    "arguments": {
+      "id": "Backscatter_Sentinel1_Track015",
+      "spatial_extent": {
+        "east": 11.416511535644531,
+        "south": 46.406617041056165,
+        "north": 46.550361051816196,
+        "west": 11.257896423339844
+      },
+      "temporal_extent": [
+        "2015-11-06T00:00:00.000Z",
+        "2016-09-25T00:00:00.000Z"
+      ]
+    }
+  },
+  "2": {
+    "process_id": "load_collection",
+    "arguments": {
+      "id": "Backscatter_Sentinel1_Track015",
+      "spatial_extent": {
+        "east": 11.416511535644531,
+        "south": 46.406617041056165,
+        "north": 46.550361051816196,
+        "west": 11.257896423339844
+      },
+      "temporal_extent": [
+        "2015-11-06T00:00:00.000Z",
+        "2016-09-25T00:00:00.000Z"
+      ]
+    }
+  },
+  "3": {
+    "process_id": "filter_bands",
+    "arguments": {
+      "data": {
+        "from_node": "1"
+      },
+      "bands": [
+        "VH"
+      ],
+      "common_names": [],
+      "wavelengths": []
+    }
+  },
+  "4": {
+    "process_id": "filter_bands",
+    "arguments": {
+      "data": {
+        "from_node": "2"
+      },
+      "bands": [
+        "VV"
+      ],
+      "common_names": [],
+      "wavelengths": []
+    }
+  },
+  "5": {
+    "process_id": "load_collection",
+    "arguments": {
+      "id": "LIA_Sentinel1_Track015",
+      "spatial_extent": {
+        "east": 11.416511535644531,
+        "south": 46.406617041056165,
+        "north": 46.550361051816196,
+        "west": 11.257896423339844
+      },
+      "temporal_extent": [
+        "2014-12-05T00:00:00.000Z",
+        "2014-12-05T00:00:00.000Z"
+      ]
+    }
+  },
+  "6": {
+    "process_id": "merge_cubes",
+    "arguments": {
+      "cube1": {
+        "from_node": "3"
+      },
+      "cube2": {
+        "from_node": "5"
+      },
+      "overlap_resolver": {
+        "callback": {
+          "3": {
+            "process_id": "product",
+            "arguments": {
+              "data": [
+                {
+                  "from_argument": "x"
+                },
+                {
+                  "from_argument": "y"
+                }
+              ]
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "7": {
+    "process_id": "apply",
+    "arguments": {
+      "data": {
+        "from_node": "5"
+      },
+      "process": {
+        "callback": {
+          "2": {
+            "process_id": "subtract",
+            "arguments": {
+              "data": [
+                1,
+                {
+                  "from_argument": "x"
+                }
+              ]
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "8": {
+    "process_id": "merge_cubes",
+    "arguments": {
+      "cube1": {
+        "from_node": "7"
+      },
+      "cube2": {
+        "from_node": "4"
+      },
+      "overlap_resolver": {
+        "callback": {
+          "3": {
+            "process_id": "product",
+            "arguments": {
+              "data": [
+                {
+                  "from_argument": "x"
+                },
+                {
+                  "from_argument": "y"
+                }
+              ]
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "9": {
+    "process_id": "merge_cubes",
+    "arguments": {
+      "cube1": {
+        "from_node": "6"
+      },
+      "cube2": {
+        "from_node": "8"
+      },
+      "overlap_resolver": {
+        "callback": {
+          "3": {
+            "process_id": "sum",
+            "arguments": {
+              "data": [
+                {
+                  "from_argument": "x"
+                },
+                {
+                  "from_argument": "y"
+                }
+              ]
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "11": {
+    "process_id": "apply",
+    "arguments": {
+      "data": {
+        "from_node": "9"
+      },
+      "process": {
+        "callback": {
+          "2": {
+            "process_id": "lt",
+            "arguments": {
+              "x": {
+                "from_argument": "x"
+              },
+              "y": -2
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "12": {
+    "process_id": "if_custom",
+    "arguments": {
+      "reject": 2,
+      "value": {
+        "from_node": "11"
+      },
+      "accept": 1
+    }
+  },
+  "14": {
+    "process_id": "load_collection",
+    "arguments": {
+      "id": "LIA_Sentinel1_Track015",
+      "spatial_extent": {
+        "east": 11.416511535644531,
+        "south": 46.406617041056165,
+        "north": 46.550361051816196,
+        "west": 11.257896423339844
+      },
+      "temporal_extent": [
+        "2014-12-05T00:00:00.000Z",
+        "2014-12-05T00:00:00.000Z"
+      ]
+    }
+  },
+  "15": {
+    "process_id": "apply",
+    "arguments": {
+      "data": {
+        "from_node": "14"
+      },
+      "process": {
+        "callback": {
+          "3": {
+            "process_id": "gt",
+            "arguments": {
+              "x": {
+                "from_argument": "x"
+              },
+              "y": 75
+            }
+          },
+          "4": {
+            "process_id": "and",
+            "arguments": {
+              "expressions": {
+                "from_node": "3"
+              }
+            }
+          },
+          "5": {
+            "process_id": "lt",
+            "arguments": {
+              "x": {
+                "from_node": "4"
+              },
+              "y": 25
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "16": {
+    "process_id": "mask_custom",
+    "arguments": {
+      "data": {
+        "from_node": "12"
+      },
+      "mask": {
+        "from_node": "15"
+      }
+    }
+  },
+  "17": {
+    "process_id": "save_result",
+    "arguments": {
+      "data": {
+        "from_node": "16"
+      },
+      "format": "NETCDF",
+      "options": {}
+    },
+    "result": true
+  }
+}
