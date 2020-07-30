@@ -13,3 +13,4 @@ StarsResult[StarsResult==-9999] = NA
 plot(StarsResult)
 # write_stars(StarsResult, "offline_bfast_output_v2.tif")
 write_stars(StarsResult, "offline_bfast_output_largeArea.tif")
+
