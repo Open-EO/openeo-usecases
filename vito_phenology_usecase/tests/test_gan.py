@@ -82,4 +82,4 @@ class TestGan(unittest.TestCase):
         check=check.mean('bands').expand_dims({'bands':['predictions']})
         check=check.expand_dims({'t':[numpy.datetime64('2020-07-04')]})
         
-        xarray.testing.assert_allclose(check, result.get_array())
+        xarray.testing.assert_allclose(check.astype(numpy.float32), result.get_array())
