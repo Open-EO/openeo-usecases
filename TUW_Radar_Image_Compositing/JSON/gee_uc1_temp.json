@@ -1,0 +1,229 @@
+{
+  "process_graph": {
+    "loadcollection1": {
+      "process_id": "load_collection",
+      "arguments": {
+        "bands": [
+          "VV"
+        ],
+        "id": "COPERNICUS/S1_GRD",
+        "spatial_extent": {
+          "west": 16.06,
+          "south": 48.1,
+          "east": 16.65,
+          "north": 48.31,
+          "crs": "EPSG:4326"
+        },
+        "temporal_extent": [
+          "2017-03-01",
+          "2017-06-01"
+        ]
+      },
+      "description": "Load Sentinel 1 VV data over Vienna from March to May 2017"
+    },
+    "filtertemporal1": {
+      "process_id": "filter_temporal",
+      "arguments": {
+        "data": {
+          "from_node": "loadcollection1"
+        },
+        "extent": [
+          "2017-03-01",
+          "2017-04-01"
+        ]
+      },
+      "description": "Selecting only data from March 2017"
+    },
+    "filtertemporal2": {
+      "process_id": "filter_temporal",
+      "arguments": {
+        "data": {
+          "from_node": "loadcollection1"
+        },
+        "extent": [
+          "2017-04-01",
+          "2017-05-01"
+        ]
+      },
+      "description": "Selecting only data from April 2017"
+    },
+    "filtertemporal3": {
+      "process_id": "filter_temporal",
+      "arguments": {
+        "data": {
+          "from_node": "loadcollection1"
+        },
+        "extent": [
+          "2017-05-01",
+          "2017-06-01"
+        ]
+      },
+      "description": "Selecting only data from May 2017"
+    },
+    "reducedimension1": {
+      "process_id": "reduce_dimension",
+      "arguments": {
+        "data": {
+          "from_node": "filtertemporal1"
+        },
+        "dimension": "t",
+        "reducer": {
+          "process_graph": {
+            "mean1": {
+              "process_id": "mean",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                }
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "data",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        }
+      },
+      "description": "Calculate the mean over March 2017 resulting in a single image of mean values"
+    },
+    "reducedimension2": {
+      "process_id": "reduce_dimension",
+      "arguments": {
+        "data": {
+          "from_node": "filtertemporal2"
+        },
+        "dimension": "t",
+        "reducer": {
+          "process_graph": {
+            "mean2": {
+              "process_id": "mean",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                }
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "data",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        }
+      },
+      "description": "Calculate the mean over April 2017 resulting in a single image of mean values"
+    },
+    "reducedimension3": {
+      "process_id": "reduce_dimension",
+      "arguments": {
+        "data": {
+          "from_node": "filtertemporal3"
+        },
+        "dimension": "t",
+        "reducer": {
+          "process_graph": {
+            "mean3": {
+              "process_id": "mean",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                }
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "data",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        }
+      },
+      "description": "Calculate the mean over May 2017 resulting in a single image of mean values"
+    },
+    "renamelabels1": {
+      "process_id": "rename_labels",
+      "arguments": {
+        "data": {
+          "from_node": "reducedimension1"
+        },
+        "dimension": "bands",
+        "target": [
+          "R"
+        ]
+      },
+      "description": "Rename the VV band label to R"
+    },
+    "renamelabels2": {
+      "process_id": "rename_labels",
+      "arguments": {
+        "data": {
+          "from_node": "reducedimension2"
+        },
+        "dimension": "bands",
+        "target": [
+          "G"
+        ]
+      },
+      "description": "Rename the VV band label to G"
+    },
+    "renamelabels3": {
+      "process_id": "rename_labels",
+      "arguments": {
+        "data": {
+          "from_node": "reducedimension3"
+        },
+        "dimension": "bands",
+        "target": [
+          "B"
+        ]
+      },
+      "description": "Rename VV band label to B"
+    },
+    "mergecubes1": {
+      "process_id": "merge_cubes",
+      "arguments": {
+        "cube1": {
+          "from_node": "renamelabels1"
+        },
+        "cube2": {
+          "from_node": "renamelabels2"
+        }
+      },
+      "description": "Merge R and G data cubes to one with both images in the band labels R and G"
+    },
+    "mergecubes2": {
+      "process_id": "merge_cubes",
+      "arguments": {
+        "cube1": {
+          "from_node": "mergecubes1"
+        },
+        "cube2": {
+          "from_node": "renamelabels3"
+        }
+      },
+      "description": "Merge RG and B data cubes to one with all three images in the band labels R, G and B"
+    },
+    "saveresult1": {
+      "process_id": "save_result",
+      "arguments": {
+        "data": {
+          "from_node": "mergecubes2"
+        },
+        "format": "GTIFF-THUMB",
+        "options": {}
+      },
+      "description": "Save the result in a GeoTiff file",
+      "result": true
+    }
+  }
+}
