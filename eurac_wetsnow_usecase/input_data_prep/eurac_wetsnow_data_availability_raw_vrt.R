@@ -126,6 +126,15 @@ ggplot(data = files_all_vrt %>% filter(polar == "VH_VV"), aes(x = date, y = 1, c
   facet_grid(track ~ .)+ 
   ggtitle(paste0("timeseries of ", path_base_vrt))
 
+# timeseries for track 015
+ggplot(data = files_all_vrt %>% filter(polar == "VH_VV") %>% filter(track == "015"), aes(x = date, y = 1, color = yr)) +
+  geom_point() +
+  scale_y_discrete() +
+  facet_grid(track ~ .)+ 
+  ggtitle(paste0("timeseries of ", path_base_vrt))
+
+files_all_vrt %>% filter(polar == "VH_VV") %>% filter(track == "015") %>% filter(yr == 2015) 
+
 # analysis combined ------------------------------------------------------------
 nrow(files_all_vrt)
 nrow(files_all %>% dplyr::filter(polar == "VV"))
