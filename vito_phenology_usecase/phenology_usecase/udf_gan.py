@@ -7,6 +7,7 @@ from typing import Dict
 
 def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
 
+    import functools
     import xarray
     import numpy
     from xarray.core.dataarray import DataArray
@@ -48,6 +49,11 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
         scaler=context.get('scaler',scaler)
 
     # HELPER FUNCTIONS #########################    
+    
+    @functools.lru_cache(maxsize=25)
+    def load_datafusion_model(prediction_model):
+        return load_model(prediction_model)
+
     
     class default_scaler():
         
@@ -148,7 +154,7 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
     if scaler=='passthrough': sc=passthrough_scaler()
         
     # load the model
-    model=load_model(prediction_model)
+    model=load_datafusion_model(prediction_model)
 
     # compute acquisition dates
     acquisition_dates = pandas.date_range(
@@ -161,7 +167,7 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
     shape=[len(acquisition_dates),1,1,1]
     shape[inarr.dims.index('x')]=xsize
     shape[inarr.dims.index('y')]=ysize
-    predictions=DataArray(numpy.full(shape,numpy.nan),dims=inarr.dims,coords={'bands':['predictions'],'t':acquisition_dates})
+    predictions=DataArray(numpy.full(shape,numpy.nan, dtype=numpy.float32),dims=inarr.dims,coords={'bands':['predictions'],'t':acquisition_dates})
     
     # run processing
     for idate in acquisition_dates:
@@ -171,7 +177,7 @@ def apply_datacube(cube: DataCube, context: Dict) -> DataCube:
                 'y':slice(iwin[1][0],iwin[1][1]),
                 't':slice(idate-pandas.to_timedelta(gan_window_half), idate+pandas.to_timedelta(gan_window_half))
             })
-            ires = process_window(data, model, sc, 128, 0.)
+            ires = process_window(data, model, sc, 128, 0.).astype(numpy.float32)
             predictions.loc[{'t':idate,'x':range(iwin[0][0],iwin[0][1]),'y':range(iwin[1][0],iwin[1][1])}]=ires
             
     # return the predictions

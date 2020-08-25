@@ -11,6 +11,7 @@ import os
 import numpy
 import scipy.signal
 from phenology_usecase.utils import UDFString
+from shapely import affinity
 
 #############################
 # USER INPUT
@@ -38,6 +39,7 @@ fieldgeom = {
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+logging.getLogger().setLevel(logging.INFO)
 
 openeo_url = 'http://openeo-dev.vgt.vito.be/openeo/1.0.0/'
 # openeo_url='https://openeo.vito.be/openeo/1.0.0/'
@@ -48,8 +50,10 @@ enddate=str(year+1)+'-07-01'
 # enddate = str(year) + '-08-10'
 
 job_options = {
-    'driver-memory': '8G',
-    'executor-memory': '4G'
+    'driver-memory': '16G',
+    'executor-memory': '16G',
+    'executor-memoryOverhead': '8G',
+    'driver-memoryOverhead': '8G'
 }
 
 #############################
@@ -73,19 +77,6 @@ def utm_zone(coordinates):
 def epsg_code(coordinates):
     code = 32600 if coordinates[1] > 0. else 32700
     return int(code + utm_zone(coordinates))
-
-
-def getImageCollection(eoconn, layer, fieldgeom, bands=None):
-    polys = shapely.geometry.GeometryCollection(
-        [shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in fieldgeom["features"]])
-    bbox = polys.bounds
-    extent = dict(zip(["west", "south", "east", "north"], bbox))
-    return eoconn.load_collection(
-        layer,
-        temporal_extent=[startdate, enddate],
-        spatial_extent=extent,
-        bands=bands
-    )
 
 
 def makekernel(size: int) -> numpy.ndarray:
@@ -126,6 +117,7 @@ if __name__ == '__main__':
     # find the extents, utm zone in epsg code for lat/lon of centroid and the bounding box polygon
     polys = shapely.geometry.GeometryCollection(
         [shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in fieldgeom["features"]])
+    polys = affinity.scale(polys, 1., 1.)
     epsgcode = epsg_code((polys.centroid.x, polys.centroid.y))
     extent = dict(zip(["west", "south", "east", "north"], polys.bounds))
     extent['crs'] = "EPSG:4326"
@@ -177,12 +169,10 @@ if __name__ == '__main__':
     ndvi_cube=ndvi_cube.add_dimension("bands", "ndvi", type="bands").band("ndvi")
 
     # run phenology
-    smoothed_cube =  ndvi_cube.apply_dimension(UDFString('udf_smooth_savitzky_golay.py').value, dimension='t',runtime="Python")
-    phenology_cube = smoothed_cube.apply_dimension(UDFString('udf_phenology_optimized.py').value, dimension='t',runtime="Python")
+    phenology_cube = ndvi_cube.apply_dimension(UDFString('udf_savitzkygolaysmooth_phenology.py').value, dimension='t',runtime="Python")
 
     # execute the process
     phenology_cube.save_user_defined_process("vito_phenology", public=True)
-#    phenology_cube.execute_batch("vito_phenology.json",out_format='json', job_options=job_options)
-    phenology_cube.execute_batch("vito_phenology.nc",out_format='netcdf', job_options=job_options)
+    phenology_cube.execute_batch("eos_sos.tif",out_format='GTiff', job_options=job_options, parameters={"tiled":True})
 
     logger.info('FINISHED')
