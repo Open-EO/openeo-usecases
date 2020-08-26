@@ -5,6 +5,7 @@ library("stars")
 library("sf")
 library("dplyr")
 library("mapview")
+library("ggplot2")
 
 # ---------------------------------------------------------------------------- #
 # module 1: normalize backscatter ----
@@ -305,7 +306,7 @@ plot(px_glacier, add = TRUE)
 
 # extract values at the points
 # this should do it in stars fashion... but doesn't really work
-(wet_snow_fin[px_glacier])
+# (wet_snow_fin[px_glacier])
 
 # wrapper function to use raster::extract
 # raster_extract taken from here
@@ -333,12 +334,35 @@ ts_plot = ggplot(data = ts_valley_glacier, aes(x = date, y = factor(value), grou
   scale_x_date(date_breaks = "months" , date_labels = "%b-%y") +
   labs(y="snow_class") +
   facet_grid(location ~ .)
+
 ggsave(filename = "eurac_wetsnow_pixel_ts.png", 
-       plot = ts_plot, device = "png", path = "/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wetsnow_usecase/")
+       plot = ts_plot, 
+       device = "png", 
+       path = "/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wetsnow_usecase/")
+
+# plot selected time steps of raster time series
+wet_snow_fin_4ts = wet_snow_fin %>% slice(time, c(1, 7, 13, 20))
+wet_snow_fin_4ts = cut(wet_snow_fin_4ts, breaks = c(0, 1, 2, 3, 4, 5), 
+                       labels = c("no_snow", "wet_snow", "dry_snow", "uncl_snow", "NA"))
+
+classfication_plot = ggplot() +
+  geom_stars(data = wet_snow_fin_4ts, alpha = 0.8) + #, downsample = c(10, 10, 1)) +
+  facet_wrap("time") +
+  scale_fill_manual(values =  c("darkolivegreen1", "lightblue", "blue", "darkblue", "white")) + 
+  coord_equal() +
+  labs(fill = "classes") +
+  theme_map() +
+  theme(legend.position = "bottom") +
+  theme(legend.key.width = unit(2, "cm"))
+
+ggsave(filename = "eurac_wetsnow_raster_ts.png", 
+       plot = ts_plot, 
+       device = "png", 
+       path = "/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wetsnow_usecase/")
+
 
 # further ideas ----
 # plot with background map and transparency
-
 # visualize as gif
 # add dem
 # make 3d gif with underlying dem to see where the snow gets wet and when
