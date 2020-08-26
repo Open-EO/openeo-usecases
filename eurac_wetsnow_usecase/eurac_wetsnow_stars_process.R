@@ -356,7 +356,7 @@ classfication_plot = ggplot() +
   theme(legend.key.width = unit(2, "cm"))
 
 ggsave(filename = "eurac_wetsnow_raster_ts.png", 
-       plot = ts_plot, 
+       plot = classfication_plot, 
        device = "png", 
        path = "/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wetsnow_usecase/")
 
