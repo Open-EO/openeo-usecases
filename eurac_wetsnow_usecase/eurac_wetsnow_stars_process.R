@@ -5,6 +5,7 @@ library("stars")
 library("sf")
 library("dplyr")
 library("mapview")
+library("ggplot2")
 
 # ---------------------------------------------------------------------------- #
 # module 1: normalize backscatter ----
@@ -284,11 +285,129 @@ wet_snow_fin = st_apply(X = wet_snow_mod, MARGIN = c("x", "y", "time"), FUN = fu
 save(wet_snow_fin, file = "/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wetsnow_usecase/eurac_wetsnow_stars_process.rdata")
 wet_snow_fin
 
-# plot with background map and transparency
+# ---------------------------------------------------------------------------- #
+# analysis of results ----
+# ---------------------------------------------------------------------------- #
+(load("/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wetsnow_usecase/eurac_wetsnow_stars_process.rdata"))
 
+# plot pixel timeseries --------------------------------------------------------
 # get timeseries for pixel in vally, on glacier and non glacier mountain
+# define point in valley
+px_valley <- data.frame(x = 10.649538, y = 46.839743) # hm 1945 m; Point in the valley floor of Langtauferer Tal on a pasture close to Melago
+px_valley = st_as_sf(px_valley, coords = c("x", "y"), crs = 4326)
+px_valley = st_transform(px_valley, crs = st_crs(wet_snow_fin))
+# define point on glacier
+px_glacier <- data.frame(x = 10.757980, y = 46.792620) # hm 2965 m; Point on the glacier Hintereisferner east of the peak Weißkugel
+px_glacier = st_as_sf(px_glacier, coords = c("x", "y"), crs = 4326)
+px_glacier = st_transform(px_glacier, crs = st_crs(wet_snow_fin))
+
+image(wet_snow_fin, axes = TRUE)
+plot(px_valley, add = TRUE)
+plot(px_glacier, add = TRUE)
+
+# extract values at the points
+# this should do it in stars fashion... but doesn't really work
+# (wet_snow_fin[px_glacier])
+
+# wrapper function to use raster::extract
+# raster_extract taken from here
+# https://www.rdocumentation.org/packages/nngeo/versions/0.3.0/source
+raster_extract = function(x, y, fun = NULL, na.rm = FALSE) {
+  x = as(x, "Raster")
+  y = as(y, "Spatial")
+  raster::extract(x = x, y = y, fun = fun, na.rm = na.rm)
+}
+
+# extract the values
+val_valley = raster_extract(x = wet_snow_fin, y = px_valley)
+val_glacier = raster_extract(x = wet_snow_fin, y = px_glacier)
+
+# make a dataset with the timeseries of valley and glacier and the according dates
+dates = stars::st_get_dimension_values(wet_snow_fin, "time")
+ts_valley_glacier = data.frame(valley = c(val_valley), glacier = c(val_glacier),  date = dates)
+
+# plot the time series
+ts_valley_glacier = tidyr::gather(ts_valley_glacier, location, value, valley:glacier)
+ts_plot = ggplot(data = ts_valley_glacier, aes(x = date, y = factor(value), group = location)) +
+  geom_point() +
+  geom_line() +
+  scale_y_discrete(labels = c("1" = "no_snow", "2" = "wet_snow", "3" = "dry_snow")) +
+  scale_x_date(date_breaks = "months" , date_labels = "%b-%y") +
+  labs(y="snow_class") +
+  facet_grid(location ~ .)
+
+ggsave(filename = "eurac_wetsnow_pixel_ts.png", 
+       plot = ts_plot, 
+       device = "png", 
+       path = "/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wetsnow_usecase/images/")
+
+# plot selected time steps of raster time series -------------------------------
+wet_snow_fin_4ts = wet_snow_fin %>% slice(time, c(1, 7, 13, 20))
+wet_snow_fin_4ts = cut(wet_snow_fin_4ts, breaks = c(0, 1, 2, 3, 4, 5), 
+                       labels = c("no_snow", "wet_snow", "dry_snow", "uncl_snow", "NA"))
+
+classfication_plot = ggplot() +
+  geom_stars(data = wet_snow_fin_4ts, alpha = 0.8) + #, downsample = c(10, 10, 1)) +
+  facet_wrap("time") +
+  scale_fill_manual(values =  c("darkolivegreen1", "lightblue", "blue", "darkblue", "white")) + 
+  coord_equal() +
+  labs(fill = "classes") +
+  theme_map() +
+  theme(legend.position = "bottom") +
+  theme(legend.key.width = unit(2, "cm"))
+
+ggsave(filename = "eurac_wetsnow_raster_ts.png", 
+       plot = classfication_plot, 
+       device = "png", 
+       path = "/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wetsnow_usecase/images/")
+
+
+# plot area of interest --------------------------------------------------------
+library(tmap)
+library(tmaptools)
+
+# bbox
+bbox = st_bbox(wet_snow_fin) 
+sf_bbox <- st_as_sfc(bbox)
+sf_bbox_latlon <- st_transform(sf_bbox, crs = 4326)
+
+# both points together
+# get from px_valley, px_glacier
+points <- tibble::tribble(
+  ~x, ~y, ~label,
+  10.649538, 46.839743, "Valley",
+  10.757980, y = 46.792620, "Glacier"
+)
+sf_points <- st_as_sf(points, coords = c("x", "y"), crs = 4326)
+sf_points <- st_transform(sf_points, crs = 3035)
+
+tmap_mode("plot")
+
+basemap <- read_osm(sf_bbox_latlon, type = "stamen-terrain", zoom = 12, ext = 3)
+
+tm1 <- 
+  tm_shape(basemap)+
+  tm_rgb()+
+  tm_shape(sf_bbox)+
+  tm_borders(lty = "solid", col = "orange", lwd = 2)+
+  
+  tm_shape(sf_points)+
+  tm_symbols(col = "label", title.col = "")+
+  tm_legend(frame = T, text.size = 1.5, position = c("left", "bottom"))+
+  tm_add_legend(labels="Study region", col="white", border.col="orange")+
+  
+  tm_scale_bar(text.size = 1)+
+  tm_credits("Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap, under ODbL.",
+             bg.color = "white")
+
+tm1
+tmap_save(tm1, "/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wetsnow_usecase/images/eurac_wetsnow_aoi.png", 
+          width = 8, height = 4, units = "in")
+
+
 
 # further ideas ----
+# plot with background map and transparency
 # visualize as gif
 # add dem
 # make 3d gif with underlying dem to see where the snow gets wet and when
