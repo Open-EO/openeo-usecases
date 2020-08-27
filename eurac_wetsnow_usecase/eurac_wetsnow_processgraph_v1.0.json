@@ -1,0 +1,899 @@
+{
+  "process_graph": {
+    "1": {
+      "process_id": "load_collection",
+      "arguments": {
+        "id": "Backscatter_Sentinel1_Track015",
+        "spatial_extent": {
+			"east": 11.416511535644531,
+			"south": 46.406617041056165,
+			"north": 46.550361051816196,
+			"west": 11.257896423339844
+        },
+        "temporal_extent": [
+		  "2015-11-06T00:00:00.000Z",
+		  "2016-09-25T00:00:00.000Z"
+        ],
+        "bands": null
+      }
+    },
+    "3": {
+      "process_id": "merge_cubes",
+      "arguments": {
+        "cube1": {
+          "from_node": "LIA_theta1_3"
+        },
+        "cube2": {
+          "from_node": "LIA_theta2_1"
+        },
+        "overlap_resolver": {
+          "process_graph": {
+            "1": {
+              "process_id": "add",
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": {
+                  "from_parameter": "y"
+                }
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "x",
+              "description": "",
+              "schema": {}
+            },
+            {
+              "name": "y",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        }
+      }
+    },
+    "5": {
+      "process_id": "mask",
+      "arguments": {
+        "mask": {
+          "from_node": "ELSE"
+        },
+        "data": {
+          "from_node": "ELSE_0"
+        },
+        "replacement": 0
+      }
+    },
+    "6": {
+      "process_id": "merge_cubes",
+      "arguments": {
+        "cube2": {
+          "from_node": "W"
+        },
+        "cube1": {
+          "from_node": "rat_VH"
+        }
+      }
+    },
+    "10": {
+      "process_id": "merge_cubes",
+      "arguments": {
+        "cube1": {
+          "from_node": "6"
+        },
+        "cube2": {
+          "from_node": "rat_VV"
+        }
+      }
+    },
+    "11": {
+      "process_id": "apply",
+      "arguments": {
+        "data": {
+          "from_node": "RC"
+        },
+        "process": {
+          "process_graph": {
+            "1": {
+              "process_id": "lt",
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": -2
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "x",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        }
+      }
+    },
+    "12": {
+      "process_id": "mask",
+      "arguments": {
+        "data": {
+          "from_node": "RC"
+        },
+        "mask": {
+          "from_node": "11"
+        },
+        "replacement": "WETSNOW"
+      }
+    },
+    "13": {
+      "process_id": "apply",
+      "arguments": {
+        "data": {
+          "from_node": "12"
+        },
+        "process": {
+          "process_graph": {
+            "1": {
+              "process_id": "gte",
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": -2
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "x",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        }
+      }
+    },
+    "14": {
+      "process_id": "mask",
+      "arguments": {
+        "data": {
+          "from_node": "12"
+        },
+        "mask": {
+          "from_node": "13"
+        },
+        "replacement": "DRYSNOW"
+      }
+    },
+    "16": {
+      "process_id": "apply",
+      "arguments": {
+        "data": {
+          "from_node": "LIA"
+        },
+        "process": {
+          "process_graph": {
+            "4": {
+              "process_id": "gt",
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": 75
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "x",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        }
+      }
+    },
+    "17": {
+      "process_id": "apply",
+      "arguments": {
+        "data": {
+          "from_node": "LIA"
+        },
+        "process": {
+          "process_graph": {
+            "2": {
+              "process_id": "lt",
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": 25
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "x",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        }
+      }
+    },
+    "21": {
+      "process_id": "mask",
+      "arguments": {
+        "data": {
+          "from_node": "14"
+        },
+        "mask": {
+          "from_node": "16"
+        }
+      }
+    },
+    "23": {
+      "process_id": "load_collection",
+      "arguments": {
+        "id": "EURAC_SNOW_CLOUDREMOVAL_MODIS_ALPS_LAEA",
+        "spatial_extent": {
+			"east": 11.416511535644531,
+			"south": 46.406617041056165,
+			"north": 46.550361051816196,
+			"west": 11.257896423339844
+        },
+        "temporal_extent": [
+		  "2015-11-06T00:00:00.000Z",
+		  "2016-09-25T00:00:00.000Z"
+        ],
+        "bands": null
+      }
+    },
+    "24": {
+      "process_id": "resample_cube_spatial",
+      "arguments": {
+        "data": {
+          "from_node": "23"
+        },
+        "target": {
+          "from_node": "1"
+        }
+      }
+    },
+    "25": {
+      "process_id": "apply",
+      "arguments": {
+        "data": {
+          "from_node": "mod_snow_cover_resampled"
+        },
+        "process": {
+          "process_graph": {
+            "1": {
+              "process_id": "eq",
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": 2
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "x",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        }
+      }
+    },
+    "WETSNOW_MAP": {
+      "process_id": "mask",
+      "arguments": {
+        "data": {
+          "from_node": "WETSNOW"
+        },
+        "mask": {
+          "from_node": "25"
+        },
+        "replacement": "NOSNOW"
+      }
+    },
+    "27": {
+      "process_id": "save_result",
+      "arguments": {
+        "data": {
+          "from_node": "WETSNOW_MAP"
+        },
+        "format": "NETCDF"
+      },
+      "result": true
+    },
+    "LIA": {
+      "process_id": "load_collection",
+      "arguments": {
+        "id": "LIA_Sentinel1_Track015",
+        "spatial_extent": {
+			"east": 11.416511535644531,
+			"south": 46.406617041056165,
+			"north": 46.550361051816196,
+			"west": 11.257896423339844
+        },
+        "temporal_extent": [
+		  "2015-11-06T00:00:00.000Z",
+		  "2016-09-25T00:00:00.000Z"
+        ],
+		"bands": null
+      }
+    },
+    "mod_snow_cover_resampled": {
+      "process_id": "resample_cube_spatial",
+      "arguments": {
+        "data": {
+          "from_node": "24"
+        },
+        "target": {
+          "from_node": "1"
+        }
+      }
+    },
+    "VV_series": {
+      "process_id": "filter_bands",
+      "arguments": {
+        "data": {
+          "from_node": "1"
+        },
+        "bands": [
+          "VV"
+        ],
+        "wavelengths": []
+      }
+    },
+    "VH_series": {
+      "process_id": "filter_bands",
+      "arguments": {
+        "data": {
+          "from_node": "1"
+        }
+      }
+    },
+    "ELSE_0": {
+      "process_id": "apply",
+      "arguments": {
+        "data": {
+          "from_node": "LIA"
+        },
+        "process": {
+          "process_graph": {
+            "ap8bd0aj7": {
+              "process_id": "subtract",
+              "arguments": {
+                "x": 45,
+                "y": {
+                  "from_parameter": "x"
+                }
+              }
+            },
+            "sl2bwl2ey": {
+              "process_id": "subtract",
+              "arguments": {
+                "x": 45,
+                "y": 25
+              }
+            },
+            "si12kymwu": {
+              "process_id": "divide",
+              "arguments": {
+                "x": {
+                  "from_node": "ap8bd0aj7"
+                },
+                "y": {
+                  "from_node": "sl2bwl2ey"
+                }
+              }
+            },
+            "2yes74m88": {
+              "process_id": "add",
+              "arguments": {
+                "x": {
+                  "from_node": "si12kymwu"
+                },
+                "y": 1
+              }
+            },
+            "b2m9apyib": {
+              "process_id": "multiply",
+              "arguments": {
+                "x": 0.5,
+                "y": {
+                  "from_node": "2yes74m88"
+                }
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "x",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        }
+      }
+    },
+    "LIA_theta1_0": {
+      "process_id": "apply",
+      "arguments": {
+        "data": {
+          "from_node": "LIA"
+        },
+        "process": {
+          "process_graph": {
+            "1": {
+              "process_id": "lt",
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": 20
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "x",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        }
+      }
+    },
+    "LIA_theta1_1": {
+      "process_id": "mask",
+      "arguments": {
+        "mask": {
+          "from_node": "LIA_theta1_0"
+        },
+        "data": {
+          "from_node": "LIA"
+        },
+        "replacement": 1
+      }
+    },
+    "LIA_theta2_2": {
+      "process_id": "apply",
+      "arguments": {
+        "data": {
+          "from_node": "LIA"
+        },
+        "process": {
+          "process_graph": {
+            "1": {
+              "process_id": "lte",
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": 45
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "x",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        }
+      }
+    },
+    "ref_VV": {
+      "process_id": "reduce_dimension",
+      "arguments": {
+        "data": {
+          "from_node": "VV_series"
+        },
+        "reducer": {
+          "process_graph": {
+            "1": {
+              "process_id": "mean",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                }
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "data",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        },
+        "dimension": "bands"
+      }
+    },
+    "rat_VV": {
+      "process_id": "merge_cubes",
+      "arguments": {
+        "cube1": {
+          "from_node": "VV_series"
+        },
+        "cube2": {
+          "from_node": "ref_VV"
+        },
+        "overlap_resolver": {
+          "process_graph": {
+            "1": {
+              "process_id": "subtract",
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": {
+                  "from_parameter": "y"
+                }
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "x",
+              "description": "",
+              "schema": {}
+            },
+            {
+              "name": "y",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        }
+      }
+    },
+    "ref_VH": {
+      "process_id": "reduce_dimension",
+      "arguments": {
+        "data": {
+          "from_node": "VH_series"
+        },
+        "reducer": {
+          "process_graph": {
+            "1": {
+              "process_id": "mean",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                }
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "data",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        },
+        "dimension": "bands"
+      }
+    },
+    "rat_VH": {
+      "process_id": "merge_cubes",
+      "arguments": {
+        "cube1": {
+          "from_node": "VH_series"
+        },
+        "cube2": {
+          "from_node": "ref_VH"
+        },
+        "overlap_resolver": {
+          "process_graph": {
+            "1": {
+              "process_id": "subtract",
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": {
+                  "from_parameter": "y"
+                }
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "x",
+              "description": "",
+              "schema": {}
+            },
+            {
+              "name": "y",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        }
+      }
+    },
+    "LIA_theta1_2": {
+      "process_id": "apply",
+      "arguments": {
+        "data": {
+          "from_node": "LIA_theta1_1"
+        },
+        "process": {
+          "process_graph": {
+            "1": {
+              "process_id": "gt",
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": 1
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "x",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        }
+      }
+    },
+    "LIA_theta1_3": {
+      "process_id": "mask",
+      "arguments": {
+        "mask": {
+          "from_node": "LIA_theta1_2"
+        },
+        "data": {
+          "from_node": "LIA_theta1_1"
+        },
+        "replacement": 0
+      }
+    },
+    "LIA_theta2_3": {
+      "process_id": "mask",
+      "arguments": {
+        "mask": {
+          "from_node": "LIA_theta2_2"
+        },
+        "data": {},
+        "replacement": 0
+      }
+    },
+    "ELSE": {
+      "process_id": "merge_cubes",
+      "arguments": {
+        "cube1": {
+          "from_node": "LIA_theta1_2"
+        },
+        "cube2": {
+          "from_node": "LIA_theta2_2"
+        },
+        "overlap_resolver": {
+          "process_graph": {
+            "1": {
+              "process_id": "and",
+              "arguments": {
+                "x": true,
+                "y": true
+              },
+              "result": true
+            }
+          },
+          "parameters": []
+        }
+      }
+    },
+    "LIA_theta2_0": {
+      "process_id": "apply",
+      "arguments": {
+        "data": {
+          "from_node": "LIA_theta2_3"
+        },
+        "process": {
+          "process_graph": {
+            "2": {
+              "process_id": "gt",
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": 0
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "x",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        }
+      }
+    },
+    "LIA_theta2_1": {
+      "process_id": "mask",
+      "arguments": {
+        "mask": {
+          "from_node": "LIA_theta2_0"
+        },
+        "data": {
+          "from_node": "LIA_theta2_3"
+        },
+        "replacement": 0.5
+      }
+    },
+    "W": {
+      "process_id": "merge_cubes",
+      "arguments": {
+        "cube1": {
+          "from_node": "3"
+        },
+        "cube2": {
+          "from_node": "5"
+        },
+        "overlap_resolver": {
+          "process_graph": {
+            "1": {
+              "process_id": "add",
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": {
+                  "from_parameter": "y"
+                }
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "x",
+              "description": "",
+              "schema": {}
+            },
+            {
+              "name": "y",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        }
+      }
+    },
+    "RC": {
+      "process_id": "reduce_dimension",
+      "arguments": {
+        "data": {
+          "from_node": "10"
+        },
+        "dimension": "bands",
+        "reducer": {
+          "process_graph": {
+            "3": {
+              "process_id": "array_element",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                },
+                "label": "rat_VV"
+              }
+            },
+            "i3hm3vyzv": {
+              "process_id": "array_element",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                },
+                "label": "W"
+              }
+            },
+            "qtg2qoblf": {
+              "process_id": "array_element",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                },
+                "label": "rat_VH"
+              }
+            },
+            "a9lw6omn6": {
+              "process_id": "multiply",
+              "arguments": {
+                "x": {
+                  "from_node": "i3hm3vyzv"
+                },
+                "y": {
+                  "from_node": "qtg2qoblf"
+                }
+              }
+            },
+            "b8799mjkk": {
+              "process_id": "subtract",
+              "arguments": {
+                "x": 1,
+                "y": {
+                  "from_node": "i3hm3vyzv"
+                }
+              }
+            },
+            "op4l7hbk5": {
+              "process_id": "multiply",
+              "arguments": {
+                "x": {
+                  "from_node": "b8799mjkk"
+                },
+                "y": {
+                  "from_node": "3"
+                }
+              }
+            },
+            "2ms4by4va": {
+              "process_id": "add",
+              "arguments": {
+                "x": {
+                  "from_node": "a9lw6omn6"
+                },
+                "y": {
+                  "from_node": "op4l7hbk5"
+                }
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "data",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        }
+      }
+    },
+    "WETSNOW": {
+      "process_id": "mask",
+      "arguments": {
+        "data": {
+          "from_node": "21"
+        },
+        "mask": {
+          "from_node": "17"
+        }
+      }
+    }
+  }
+}
