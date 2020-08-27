@@ -60,25 +60,6 @@ job_options = {
 # CODE
 #############################
 
-def utm_zone(coordinates):
-    if 56 <= coordinates[1] < 64 and 3 <= coordinates[0] < 12:
-        return 32
-    if 72 <= coordinates[1] < 84 and 0 <= coordinates[0] < 42:
-        if coordinates[0] < 9:
-            return 31
-        elif coordinates[0] < 21:
-            return 33
-        elif coordinates[0] < 33:
-            return 35
-        return 37
-    return int((coordinates[0] + 180) / 6) + 1
-
-
-def epsg_code(coordinates):
-    code = 32600 if coordinates[1] > 0. else 32700
-    return int(code + utm_zone(coordinates))
-
-
 def makekernel(size: int) -> numpy.ndarray:
     assert size % 2 == 1
     kernel_vect = scipy.signal.windows.gaussian(size, std=size / 3.0, sym=True)
@@ -118,7 +99,6 @@ if __name__ == '__main__':
     polys = shapely.geometry.GeometryCollection(
         [shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in fieldgeom["features"]])
     polys = affinity.scale(polys, 1., 1.)
-    epsgcode = epsg_code((polys.centroid.x, polys.centroid.y))
     extent = dict(zip(["west", "south", "east", "north"], polys.bounds))
     extent['crs'] = "EPSG:4326"
     bboxpoly=shapely.geometry.Polygon.from_bounds(*polys.bounds)
