@@ -290,13 +290,14 @@ wet_snow_fin
 # ---------------------------------------------------------------------------- #
 (load("/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wetsnow_usecase/eurac_wetsnow_stars_process.rdata"))
 
+# plot pixel timeseries --------------------------------------------------------
 # get timeseries for pixel in vally, on glacier and non glacier mountain
 # define point in valley
-px_valley <- data.frame(x = 10.649538, y = 46.839743) # hm; Point in the valley floor of Langtauferer Tal on a pasture close to Melago
+px_valley <- data.frame(x = 10.649538, y = 46.839743) # hm 1945 m; Point in the valley floor of Langtauferer Tal on a pasture close to Melago
 px_valley = st_as_sf(px_valley, coords = c("x", "y"), crs = 4326)
 px_valley = st_transform(px_valley, crs = st_crs(wet_snow_fin))
 # define point on glacier
-px_glacier <- data.frame(x = 10.757980, y = 46.792620) # hm; Point on the glacier Hintereisferner east of the peak Weißkugel
+px_glacier <- data.frame(x = 10.757980, y = 46.792620) # hm 2965 m; Point on the glacier Hintereisferner east of the peak Weißkugel
 px_glacier = st_as_sf(px_glacier, coords = c("x", "y"), crs = 4326)
 px_glacier = st_transform(px_glacier, crs = st_crs(wet_snow_fin))
 
@@ -340,7 +341,7 @@ ggsave(filename = "eurac_wetsnow_pixel_ts.png",
        device = "png", 
        path = "/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wetsnow_usecase/images/")
 
-# plot selected time steps of raster time series
+# plot selected time steps of raster time series -------------------------------
 wet_snow_fin_4ts = wet_snow_fin %>% slice(time, c(1, 7, 13, 20))
 wet_snow_fin_4ts = cut(wet_snow_fin_4ts, breaks = c(0, 1, 2, 3, 4, 5), 
                        labels = c("no_snow", "wet_snow", "dry_snow", "uncl_snow", "NA"))
@@ -359,6 +360,50 @@ ggsave(filename = "eurac_wetsnow_raster_ts.png",
        plot = classfication_plot, 
        device = "png", 
        path = "/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wetsnow_usecase/images/")
+
+
+# plot area of interest --------------------------------------------------------
+library(tmap)
+library(tmaptools)
+
+# bbox
+bbox = st_bbox(wet_snow_fin) 
+sf_bbox <- st_as_sfc(bbox)
+sf_bbox_latlon <- st_transform(sf_bbox, crs = 4326)
+
+# both points together
+# get from px_valley, px_glacier
+points <- tibble::tribble(
+  ~x, ~y, ~label,
+  10.649538, 46.839743, "Valley",
+  10.757980, y = 46.792620, "Glacier"
+)
+sf_points <- st_as_sf(points, coords = c("x", "y"), crs = 4326)
+sf_points <- st_transform(sf_points, crs = 3035)
+
+tmap_mode("plot")
+
+basemap <- read_osm(sf_bbox_latlon, type = "stamen-terrain", zoom = 12, ext = 3)
+
+tm1 <- 
+  tm_shape(basemap)+
+  tm_rgb()+
+  tm_shape(sf_bbox)+
+  tm_borders(lty = "solid", col = "orange", lwd = 2)+
+  
+  tm_shape(sf_points)+
+  tm_symbols(col = "label", title.col = "")+
+  tm_legend(frame = T, text.size = 1.5, position = c("left", "bottom"))+
+  tm_add_legend(labels="Study region", col="white", border.col="orange")+
+  
+  tm_scale_bar(text.size = 1)+
+  tm_credits("Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap, under ODbL.",
+             bg.color = "white")
+
+tm1
+tmap_save(tm1, "/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wetsnow_usecase/images/eurac_wetsnow_aoi.png", 
+          width = 8, height = 4, units = "in")
+
 
 
 # further ideas ----
