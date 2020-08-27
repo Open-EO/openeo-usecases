@@ -338,7 +338,7 @@ ts_plot = ggplot(data = ts_valley_glacier, aes(x = date, y = factor(value), grou
 ggsave(filename = "eurac_wetsnow_pixel_ts.png", 
        plot = ts_plot, 
        device = "png", 
-       path = "/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wetsnow_usecase/")
+       path = "/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wetsnow_usecase/images/")
 
 # plot selected time steps of raster time series
 wet_snow_fin_4ts = wet_snow_fin %>% slice(time, c(1, 7, 13, 20))
@@ -358,7 +358,7 @@ classfication_plot = ggplot() +
 ggsave(filename = "eurac_wetsnow_raster_ts.png", 
        plot = classfication_plot, 
        device = "png", 
-       path = "/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wetsnow_usecase/")
+       path = "/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wetsnow_usecase/images/")
 
 
 # further ideas ----
