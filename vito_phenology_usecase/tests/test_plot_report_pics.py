@@ -5,7 +5,7 @@ Created on Jul 16, 2020
 '''
 import unittest
 from openeo_udf.api.datacube import DataCube
-from phenology_usecase import udf_gan,udf_smooth_savitzky_golay, udf_phenology_optimized
+from phenology_usecase import udf_gan, udf_savitzkygolaysmooth_phenology
 from unittest.case import skip
 from matplotlib import pyplot
 from phenology_usecase.utils import load_DataCube, load_DataArray, save_DataCube,\
@@ -72,14 +72,15 @@ class TestGan(unittest.TestCase):
     def test02_smoother(self):
         cube=load_DataCube(os.path.join(os.path.dirname(__file__),'ndvi_cube.json'))
         cube=DataCube(cube.get_array().drop(['x','y']))
-        result=udf_smooth_savitzky_golay.apply_datacube(cube,{})
+        result=udf_savitzkygolaysmooth_phenology.apply_datacube(cube,{})
         save_DataCube(os.path.join(os.path.dirname(__file__),'results_smoothed.json'), result)
         
     def test03_phenology(self):
         cube=load_DataCube(os.path.join(os.path.dirname(__file__),'results_smoothed.json'))
-        result=udf_phenology_optimized.apply_datacube(cube,{})
+        result=udf_savitzkygolaysmooth_phenology.apply_datacube(cube,{})
         save_DataCube(os.path.join(os.path.dirname(__file__),'results_phenology.json'), result)
-        
+    
+    @skip("this is the actual drawing, comment for generating the pictures")
     def test04_drawing(self):
         
         gan=load_DataArray(os.path.join(os.path.dirname(__file__),'ndvi_cube.json')).drop(['x','y'])
