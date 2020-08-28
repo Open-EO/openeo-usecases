@@ -54,12 +54,6 @@ s1 = p$load_collection(id = p$data$openEO_WUR_Usecase,
 
 
 
-# download the input data for the udf (this is just to test the off-line and on-line results):
-# job_id = create_job(con = eurac, graph = s1, title = "job2_wur_udf_data", description = "job2_wur_udf_data") # 
-# start_job(con = eurac, job = job_id)
-# doneData = download_results(job = job_id, folder = ".")
-
-
 list_udf_runtimes(eurac)
 describe_process(con = eurac,"load_collection")
 
@@ -72,8 +66,6 @@ describe_collection(id="openEO_WUR_UseCase_NoNaNs")
 udfName = "BFAST_udf.R"
 udfCode = readChar(udfName, file.info(udfName)$size)
 
-# send_udf(s1, udfCode, host = "", port = NULL, language = "R", debug = FALSE, download_info = FALSE)
-
 test1 = p$run_udf(data = s1, udf = udfCode, runtime = "R")
 graph_test1 = p$save_result(test1, format="GTiff")
 # compute_result(graph=graph_test1, format="GTiff", output_file = 'euracBackend_bfast_output_noNAs.tif')
@@ -83,6 +75,11 @@ graph_test1 = p$save_result(test1, format="GTiff")
 job_id = create_job(con = eurac, graph = graph_test1, title = "job1_wur_udf_rclient_byWUR", description = "job1_wur_udf_rclient_byWUR") # batch call, works on udf!
 start_job(con = eurac, job = job_id)
 done = download_results(job = job_id, folder = ".")
+
+
+# -------------------------------------------------------------------
+# the code below is for cheeking local and eurac output from bfast:
+
 
 # load the result and plot:
 print(done)
@@ -95,8 +92,6 @@ outRast[outRast==-9999] = NA
 plot(outRast)
 # chek metadata
 print(outRast)
-
-
 
 
 # compare with the local run output:
