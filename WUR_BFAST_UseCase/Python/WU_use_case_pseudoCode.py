@@ -19,13 +19,33 @@ session = openeo.connect(VITO_DRIVER_URL).authenticate_basic(username=my_user, p
 
 #  upload our data manually:
 s1 = session.load_disk_collection('GTiff', str('/data/users/Public/driesj/openeo/WUR/with_srs/S1A_VH*.tif'), options={'date_regex': '.*S1A_VH_(\d{4})-(\d{2})-(\d{2}).tif'})
-s1.download('S1_single_date.tif')
-s1.max_time().download('S1_max_time.tif')
+s1_cube = s1.filter_bbox(west=-6105178, east=-6097840, north=-388911, south=-396249, crs="EPSG:3857")
 
+# ----------------------------------------------------------------------------------------------------------------------
+# prepare functions to load the udf code:
+# ----------------------------------------------------------------------------------------------------------------------
+def get_resource(relative_path):
+    return str(Path(relative_path))
+
+def load_udf(relative_path):
+    with open(get_resource(relative_path), 'r+') as f:
+        return f.read()
+
+# ----------------------------------------------------------------------------------------------------------------------
+# load and apply the udf code on data cube::
+# ----------------------------------------------------------------------------------------------------------------------
+BFASTMonitor_udf = load_udf('BFAST_udf.py')
+# apply the udf:
+udf_out = s1_cube.reduce_dimension(BFASTMonitor_udf, dimension='t', runtime='Python')
+
+
+udf_out = s1_cube.apply_dimension(BFASTMonitor_udf, dimension='t', runtime='Python')
+
+# the rest of the script to be run with SentinelHUB data
 
 # load the image collection:
-session.list_collections()
-s1 = session.imagecollection("SENTINEL1_GAMMA0_SENTINELHUB", bands="VH_DB")
+# session.list_collections()
+# s1 = session.imagecollection("SENTINEL1_GAMMA0_SENTINELHUB", bands="VH_DB")
 
 # ----------------------------------------------------------------------------------------------------------------------
 # prepare a data cube for the time and area of interest:
@@ -43,7 +63,7 @@ s1_vh = s1.filter_temporal([start_date.strftime("%Y-%m-%dT%H:%M:%S"), end_date.s
                  north=-3.510)
 
 
-s1_vh.max_time().download('S1_max_time_SentHUB.tif')
+# s1_vh.max_time().download('S1_max_time_SentHUB.tif')
 
 # ----------------------------------------------------------------------------------------------------------------------
 # prepare functions to load the udf code:
@@ -62,7 +82,9 @@ BFASTMonitor_udf = load_udf('BFAST_udf.py')
 
 # apply the udf code to reduce the data cube along the time dimension and get a raster which values shows
 # the day of the year 2019 where the break was detected:
-break_days = s1_vh.reduce(BFASTMonitor_udf, dimension='time')
+# break_days = s1_vh.reduce(BFASTMonitor_udf, dimension='time')
+# break_days = s1_vh.run_udf(BFASTMonitor_udf)
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # download the deforestation probability map for a certain date:

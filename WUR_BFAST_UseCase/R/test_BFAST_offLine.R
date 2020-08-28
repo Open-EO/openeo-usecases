@@ -1,7 +1,7 @@
 library(stars)
 #
-#x = read_stars("s1_vh_2017_2019_aoi.tif", RasterIO=list(nBufXSize=225, nBufYSize=214, nXSize=20, nYSize=20))
-x = read_stars("s1_vh_2017_2019_aoi_noNaN.tif")
+x = read_stars("s1_vh_2017_2019_aoi.tif", RasterIO=list(nBufXSize=225, nBufYSize=214, nXSize=20, nYSize=20))
+#x = read_stars("s1_vh_2017_2019_aoi_noNaN.tif")
 source("BFAST_udf.R")
 #
 StarsResult# @require x:stars

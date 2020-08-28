@@ -25,15 +25,15 @@ eurac = connect(host = euracHost, version="0.4.2", user = user, password = passw
 p = processes()
 
 # the spatial and temporal exstends should be adopted:
-# s1 = p$load_collection(id = p$data$openEO_WUR_UseCase_NoNaNs,
-#                        spatial_extent = list(west = -54.815,
-#                                              south = -3.515,
-#                                              east =  -54.810,
-#                                              north = -3.510),
-#                        # add band selection here
-#                        temporal_extent = c("2017-01-01T00:00:00Z","2019-12-29T00:00:00Z"),
-#                        # select the vh band:
-#                        bands = c('VH'))
+s1 = p$load_collection(id = p$data$openEO_WUR_Usecase,
+                       spatial_extent = list(west = -54.815,
+                                             south = -3.515,
+                                             east =  -54.810,
+                                             north = -3.510),
+                       # add band selection here
+                       temporal_extent = c("2017-01-01T00:00:00Z","2019-12-29T00:00:00Z"),
+                       # select the vh band:
+                       bands = c('VH'))
 
 9611198
 742740
@@ -42,7 +42,7 @@ p = processes()
 
 
 
-s1 = p$load_collection(id = p$data$openEO_WUR_UseCase_NoNaNs,
+s1 = p$load_collection(id = p$data$openEO_WUR_Usecase,
                        spatial_extent = list(west = -54.88778740,
                                              south = -3.59408239,
                                              east =  -54.70898726,
@@ -68,7 +68,7 @@ list_collections()
 collection_viewer("openEO_WUR_UseCase_NoNaNs")
 describe_collection(id="openEO_WUR_UseCase_NoNaNs")
 
-# note: please take care of the working directory of your R sesion
+# note: please take care of the working directory of your R session
 udfName = "BFAST_udf.R"
 udfCode = readChar(udfName, file.info(udfName)$size)
 
@@ -99,26 +99,53 @@ print(outRast)
 
 
 
-
-
 # compare with the local run output:
-onLineRaster = raster("67117f0c-52a5-4be3-ab97-1fcd83bd195a.tiff")
-# offLineRaster = raster("offline_bfast_output_v2.tif")
-offLineRaster = raster("offline_bfast_output_largeArea.tif")
+#onLineRaster = raster("67117f0c-52a5-4be3-ab97-1fcd83bd195a.tiff")
+onLineRaster = raster("c591e025-3022-4e84-959d-22bdbabf23df.tiff")
+offLineRaster = raster("offline_bfast_output_v2.tif")
 print(offLineRaster)
 print(onLineRaster)
+
+onLineRaster[onLineRaster==-9999] = NA
+
+# crop raster:
+# use row and column numbers:
+offLineRaster2 <- crop(offLineRaster, onLineRaster@extent)
+print(offLineRaster3)
+print(onLineRaster)
+
+plot(offLineRaster2)
+
+# calculate the difference raster:
+diff = onLineRaster - offLineRaster3
+offLineRaster3@data@values - onLineRaster@data@values
+
+
+offLineRaster3 = shift(offLineRaster2, dx=10, dy=10)
+offLineRaster4 = shift(offLineRaster3, dx=1, dy=1)
+
+plot(offLineRaster3)
+
+library(raster)
+library(ggplot2)
+library(reshape2)
+library(RStoolbox)
+p = ggR(onLineRaster, sat = 1, alpha = .5) 
+p + ggR(offLineRaster3, sat = 1, hue = .5, alpha = 0.5, ggLayer=TRUE) 
 
 # plloting both outputs
 library(viridisLite)
 library(viridis) 
 par(mfrow=c(1,2))
-plot(offLineRaster, 
+plot(offLineRaster3, 
      xlim = c(onLineRaster@extent@xmin, onLineRaster@extent@xmax), 
      ylim = c(onLineRaster@extent@ymin, onLineRaster@extent@ymax),
      col=inferno(12), zlim=c(2019,2020))
 #
 plot(onLineRaster,
      col=inferno(12), zlim=c(2019,2020))
+
+
 
 
 # compare the with the data downloaded from the backend:
