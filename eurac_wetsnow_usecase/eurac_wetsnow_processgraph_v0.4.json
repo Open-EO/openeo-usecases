@@ -1,0 +1,628 @@
+{
+  "1": {
+    "process_id": "load_collection",
+    "arguments": {
+      "id": "Backscatter_Sentinel1_Track015",
+      "spatial_extent": {
+        "east": 11.416511535644531,
+        "south": 46.406617041056165,
+        "north": 46.550361051816196,
+        "west": 11.257896423339844
+      },
+      "temporal_extent": [
+        "2015-11-06T00:00:00.000Z",
+        "2016-09-25T00:00:00.000Z"
+      ]
+    }
+  },
+  "2": {
+    "process_id": "filter_bands",
+    "arguments": {
+      "data": {
+        "from_node": "1"
+      },
+      "bands": [
+        "VH"
+      ],
+      "common_names": [],
+      "wavelengths": []
+    }
+  },
+  "3": {
+    "process_id": "reduce",
+    "arguments": {
+      "data": {
+        "from_node": "2"
+      },
+      "reducer": {
+        "callback": {
+          "2": {
+            "process_id": "max",
+            "arguments": {
+              "data": {
+                "from_argument": "data"
+              }
+            },
+            "result": true
+          }
+        }
+      },
+      "dimension": "temporal",
+      "target_dimension": null
+    }
+  },
+  "4": {
+    "process_id": "filter_bands",
+    "arguments": {
+      "data": {
+        "from_node": "1"
+      },
+      "bands": [
+        "VH"
+      ],
+      "common_names": [],
+      "wavelengths": []
+    }
+  },
+  "5": {
+    "process_id": "merge_cubes",
+    "arguments": {
+      "cube1": {
+        "from_node": "4"
+      },
+      "cube2": {
+        "from_node": "3"
+      },
+      "overlap_resolver": {
+        "callback": {
+          "3": {
+            "process_id": "subtract",
+            "arguments": {
+              "data": [
+                {
+                  "from_argument": "x"
+                },
+                {
+                  "from_argument": "y"
+                }
+              ]
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "7": {
+    "process_id": "filter_bands",
+    "arguments": {
+      "data": {
+        "from_node": "1"
+      },
+      "bands": [
+        "VV"
+      ],
+      "common_names": [],
+      "wavelengths": []
+    }
+  },
+  "8": {
+    "process_id": "reduce",
+    "arguments": {
+      "data": {
+        "from_node": "7"
+      },
+      "reducer": {
+        "callback": {
+          "2": {
+            "process_id": "max",
+            "arguments": {
+              "data": {
+                "from_argument": "data"
+              }
+            },
+            "result": true
+          }
+        }
+      },
+      "dimension": "temporal",
+      "target_dimension": null
+    }
+  },
+  "9": {
+    "process_id": "filter_bands",
+    "arguments": {
+      "data": {
+        "from_node": "1"
+      }
+    }
+  },
+  "10": {
+    "process_id": "merge_cubes",
+    "arguments": {
+      "cube1": {
+        "from_node": "9"
+      },
+      "cube2": {
+        "from_node": "8"
+      },
+      "overlap_resolver": {
+        "callback": {
+          "3": {
+            "process_id": "subtract",
+            "arguments": {
+              "data": [
+                {
+                  "from_argument": "x"
+                },
+                {
+                  "from_argument": "y"
+                }
+              ]
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "13": {
+    "process_id": "load_collection",
+    "arguments": {
+      "id": "LIA_Sentinel1_Track015",
+      "spatial_extent": {
+        "east": 10.777416229248047,
+        "south": 46.78148963659169,
+        "north": 46.85244345762143,
+        "west": 10.570392608642578
+      },
+      "temporal_extent": [
+        "2014-12-05T00:00:00.000Z",
+        "2014-12-05T00:00:00.000Z"
+      ]
+    }
+  },
+  "14": {
+    "process_id": "apply",
+    "arguments": {
+      "data": {
+        "from_node": "13"
+      },
+      "process": {
+        "callback": {
+          "2": {
+            "process_id": "subtract",
+            "arguments": {
+              "data": [
+                45,
+                {
+                  "from_argument": "x"
+                }
+              ]
+            }
+          },
+          "3": {
+            "process_id": "product",
+            "arguments": {
+              "data": [
+                0.04,
+                {
+                  "from_node": "2"
+                }
+              ]
+            }
+          },
+          "4": {
+            "process_id": "sum",
+            "arguments": {
+              "data": [
+                1,
+                {
+                  "from_node": "3"
+                }
+              ]
+            }
+          },
+          "5": {
+            "process_id": "product",
+            "arguments": {
+              "data": [
+                0.5,
+                {
+                  "from_node": "4"
+                }
+              ]
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "15": {
+    "process_id": "apply",
+    "arguments": {
+      "data": {
+        "from_node": "13"
+      },
+      "process": {
+        "callback": {
+          "2": {
+            "process_id": "lt",
+            "arguments": {
+              "x": {
+                "from_argument": "x"
+              },
+              "y": 20
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "16": {
+    "process_id": "apply",
+    "arguments": {
+      "data": {
+        "from_node": "13"
+      },
+      "process": {
+        "callback": {
+          "2": {
+            "process_id": "gt",
+            "arguments": {
+              "x": {
+                "from_argument": "x"
+              },
+              "y": 45
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "18": {
+    "process_id": "mask",
+    "arguments": {
+      "data": {
+        "from_node": "14"
+      },
+      "mask": {
+        "from_node": "15"
+      },
+      "replacement": 0.5
+    }
+  },
+  "19": {
+    "process_id": "mask",
+    "arguments": {
+      "data": {
+        "from_node": "18"
+      },
+      "mask": {
+        "from_node": "16"
+      },
+      "replacement": 1
+    }
+  },
+  "22": {
+    "process_id": "merge_cubes",
+    "arguments": {
+      "cube1": {
+        "from_node": "5"
+      },
+      "cube2": {
+        "from_node": "19"
+      },
+      "overlap_resolver": {
+        "callback": {
+          "2": {
+            "process_id": "product",
+            "arguments": {
+              "data": {
+                "from_argument": "data"
+              }
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "24": {
+    "process_id": "apply",
+    "arguments": {
+      "data": {
+        "from_node": "19"
+      },
+      "process": {
+        "callback": {
+          "3": {
+            "process_id": "subtract",
+            "arguments": {
+              "data": [
+                1,
+                {
+                  "from_argument": "x"
+                }
+              ]
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "25": {
+    "process_id": "merge_cubes",
+    "arguments": {
+      "cube1": {
+        "from_node": "10"
+      },
+      "cube2": {
+        "from_node": "24"
+      },
+      "overlap_resolver": {
+        "callback": {
+          "2": {
+            "process_id": "product",
+            "arguments": {
+              "data": {
+                "from_argument": "data"
+              }
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "26": {
+    "process_id": "merge_cubes",
+    "arguments": {
+      "cube1": {
+        "from_node": "22"
+      },
+      "cube2": {
+        "from_node": "25"
+      },
+      "overlap_resolver": {
+        "callback": {
+          "3": {
+            "process_id": "sum",
+            "arguments": {
+              "data": [
+                {
+                  "from_argument": "x"
+                },
+                {
+                  "from_argument": "y"
+                }
+              ]
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "27": {
+    "process_id": "apply",
+    "arguments": {
+      "data": {
+        "from_node": "26"
+      },
+      "process": {
+        "callback": {
+          "2": {
+            "process_id": "lt",
+            "arguments": {
+              "x": {
+                "from_argument": "x"
+              },
+              "y": -2
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "28": {
+    "process_id": "mask",
+    "arguments": {
+      "data": {
+        "from_node": "26"
+      },
+      "mask": {
+        "from_node": "27"
+      },
+      "replacement": 1
+    }
+  },
+  "30": {
+    "process_id": "apply",
+    "arguments": {
+      "data": {
+        "from_node": "28"
+      },
+      "process": {
+        "callback": {
+          "2": {
+            "process_id": "neq",
+            "arguments": {
+              "x": {
+                "from_argument": "x"
+              },
+              "y": 1,
+              "delta": null
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "31": {
+    "process_id": "mask",
+    "arguments": {
+      "data": {
+        "from_node": "28"
+      },
+      "mask": {
+        "from_node": "30"
+      },
+      "replacement": 2
+    }
+  },
+  "32": {
+    "process_id": "apply",
+    "arguments": {
+      "data": {
+        "from_node": "13"
+      },
+      "process": {
+        "callback": {
+          "2": {
+            "process_id": "lt",
+            "arguments": {
+              "x": {
+                "from_argument": "x"
+              },
+              "y": 25
+            }
+          },
+          "3": {
+            "process_id": "and",
+            "arguments": {
+              "expressions": {
+                "from_node": "2"
+              }
+            }
+          },
+          "4": {
+            "process_id": "gt",
+            "arguments": {
+              "x": {
+                "from_node": "3"
+              },
+              "y": 75
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "33": {
+    "process_id": "mask",
+    "arguments": {
+      "data": {
+        "from_node": "31"
+      },
+      "mask": {
+        "from_node": "32"
+      },
+      "replacement": 3
+    }
+  },
+  "34": {
+    "process_id": "load_collection",
+    "arguments": {
+      "id": "EURAC_SNOW_CLOUDREMOVAL_MODIS_ALPS_LAEA",
+      "spatial_extent": {
+        "east": 11.416511535644531,
+        "south": 46.406617041056165,
+        "north": 46.550361051816196,
+        "west": 11.257896423339844
+      },
+      "temporal_extent": [
+        "2015-11-06T00:00:00.000Z",
+        "2016-09-25T00:00:00.000Z"
+      ]
+    }
+  },
+  "35": {
+    "process_id": "resample_cube_temporal",
+    "arguments": {
+      "data": {
+        "from_node": "34"
+      },
+      "target": {
+        "from_node": "1"
+      },
+      "method": {
+        "callback": {
+          "3": {
+            "process_id": "min",
+            "arguments": {
+              "data": {
+                "from_argument": "data"
+              }
+            },
+            "result": true
+          }
+        }
+      },
+      "dimension": null
+    }
+  },
+  "36": {
+    "process_id": "resample_cube_spatial",
+    "arguments": {
+      "data": {
+        "from_node": "35"
+      },
+      "target": {
+        "from_node": "1"
+      }
+    }
+  },
+  "37": {
+    "process_id": "apply",
+    "arguments": {
+      "data": {
+        "from_node": "36"
+      },
+      "process": {
+        "callback": {
+          "2": {
+            "process_id": "eq",
+            "arguments": {
+              "x": {
+                "from_argument": "x"
+              },
+              "y": 2,
+              "delta": null
+            },
+            "result": true
+          }
+        }
+      }
+    }
+  },
+  "38": {
+    "process_id": "mask",
+    "arguments": {
+      "data": {
+        "from_node": "33"
+      },
+      "mask": {
+        "from_node": "37"
+      }
+    }
+  },
+  "39": {
+    "process_id": "save_result",
+    "arguments": {
+      "data": {
+        "from_node": "38"
+      },
+      "format": "NETCDF",
+      "options": {}
+    },
+    "result": true
+  }
+}
