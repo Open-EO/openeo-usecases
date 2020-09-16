@@ -9,6 +9,8 @@ The process graph for this use case is relatively simple, using only five basic 
 
 With respect to the standard implementation of the core API, a new geometry file type in aggregate_spatial was added (in addition to geoJSON). The large number of polygons for this use case (238.428) would result in a large geographical JSON file, whereas the file is already present on disk within the processing environment.  Two additional arguments are passed via the context argument  of  the  process  aggregate_spatial.   The  first  is  a  negative buffer to exclude the border pixels for each polygon.  The second is srcnodata to ignore all pixels in the  polygons  that  have  been  masked  by  the  mask  process  for  the  calculation  of  the  mean aggregation.
 
+The user defined function (UDF) is based on code that makes use of the [pyjeo](https://doi.org/10.3390/ijgi8100461) module. It performs a data smoothing to fill in gaps due to cloudy observations and a subsequent Savitzky-Golay filter, following the approach outlined in [J. Chen 2004](https://doi.org/10.1016/j.rse.2004.03.014). Until pyjeo will be released under the open source license (GPLv3), back-ends can use the Savitzky-Golay filter from [SciPy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html), or apply the [process graph without udf](data/zonal_statistics_timeseries_ndvi_noudf.json).
+
 * [deliverable 26](https://owncloud.tuwien.ac.at/index.php/s/j1rFjSsv1W4XyXx?path=%2FopenEO_Public%2F05_Deliverables%2FD26_FinalUseCaseProcessChains#pdfviewer)
 
 ## process graph
@@ -26,6 +28,9 @@ With respect to the standard implementation of the core API, a new geometry file
 
 Extracted parcels:
 ![](images/parcels.png)
+
+[results with udf](data/jrc_usecase5_result_udf.json)
+[results without udf](data/jrc_usecase5_result_noudf.json)
 
 Speedup (multi-threading)
 ![](images/usecase5_speedup.png)
