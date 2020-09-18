@@ -121,4 +121,6 @@ for (i in 1:nrow(files_mod)) {
 read_stars(paste0(path_out, paste0("ERUAC_MODIS_SNOW_", basename(files_mod$path[[i]]))))
 read_stars(paste0(path_out, gsub(pattern = ".vrt", replacement = ".tif", x = basename(files_lia))))
 read_stars(paste0(path_out, gsub(pattern = ".vrt", replacement = ".tif", x = basename(files_s1a[[1]]))))
-
+st_crs(modis)
+st_crs(backscatter)
+st_crs(lia)
