@@ -8,21 +8,6 @@
         },
         "cube1": {
           "from_node": "10"
-        },
-        "overlap_resolver": {
-          "process_graph": {},
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            },
-            {
-              "name": "y",
-              "description": "",
-              "schema": {}
-            }
-          ]
         }
       }
     },
@@ -34,21 +19,6 @@
         },
         "cube1": {
           "from_node": "11"
-        },
-        "overlap_resolver": {
-          "process_graph": {},
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            },
-            {
-              "name": "y",
-              "description": "",
-              "schema": {}
-            }
-          ]
         }
       }
     },
@@ -60,21 +30,6 @@
         },
         "cube1": {
           "from_node": "34"
-        },
-        "overlap_resolver": {
-          "process_graph": {},
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            },
-            {
-              "name": "y",
-              "description": "",
-              "schema": {}
-            }
-          ]
         }
       }
     },
@@ -86,34 +41,6 @@
         },
         "cube1": {
           "from_node": "35"
-        },
-        "overlap_resolver": {
-          "process_graph": {
-            "1": {
-              "process_id": "multiply",
-              "arguments": {
-                "x": {
-                  "from_parameter": "x"
-                },
-                "y": {
-                  "from_parameter": "y"
-                }
-              },
-              "result": true
-            }
-          },
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            },
-            {
-              "name": "y",
-              "description": "",
-              "schema": {}
-            }
-          ]
         }
       }
     },
@@ -125,21 +52,6 @@
         },
         "cube2": {
           "from_node": "41"
-        },
-        "overlap_resolver": {
-          "process_graph": {},
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            },
-            {
-              "name": "y",
-              "description": "",
-              "schema": {}
-            }
-          ]
         }
       }
     },
@@ -147,35 +59,64 @@
       "process_id": "load_collection",
       "arguments": {
         "temporal_extent": [
-          "2015-01-28T00:00:00.000Z",
-          "2015-02-20T00:00:00.000Z"
+          "2015-11-06T00:00:00.000Z",
+          "2016-09-27T00:00:00.000Z"
         ],
         "spatial_extent": {
-          "east": 8.36,
-          "south": 47.509,
-          "north": 47.51,
-          "west": 8.359
+          "west": 10.570392608642578,
+          "south": 46.78148963659169,
+          "east": 10.777416229248047,
+          "north": 46.85244345762143
         },
-        "id": "Backscatter_Sentinel1_Track015_Regular_Timeseries_3"
+        "id": "Backscatter_Sentinel1_Track015"
       }
     },
     "9": {
       "process_id": "load_collection",
       "arguments": {
         "temporal_extent": [
-          "2014-12-05T00:00:00.000Z",
-          "2014-12-05T00:00:00.000Z"
+          "2014-12-04T00:00:00.000Z",
+          "2014-12-08T00:00:00.000Z"
         ],
         "spatial_extent": {
-          "east": 8.36,
-          "south": 47.509,
-          "north": 47.51,
-          "west": 8.359
+          "west": 10.570392608642578,
+          "south": 46.78148963659169,
+          "east": 10.777416229248047,
+          "north": 46.85244345762143
         },
         "id": "LIA_Sentinel1_Track015",
         "bands": [
           "LIA"
         ]
+      }
+    },
+    "99": {
+      "process_id": "reduce_dimension",
+      "arguments": {
+        "data": {
+          "from_node": "9"
+        },
+        "reducer": {
+          "process_graph": {
+            "1": {
+              "process_id": "min",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                }
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "data",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        },
+        "dimension": "t"
       }
     },
     "10": {
@@ -264,7 +205,7 @@
       "process_id": "apply",
       "arguments": {
         "data": {
-          "from_node": "9"
+          "from_node": "99"
         },
         "process": {
           "process_graph": {
