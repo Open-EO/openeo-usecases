@@ -8,21 +8,6 @@
         },
         "cube1": {
           "from_node": "10"
-        },
-        "overlap_resolver": {
-          "process_graph": {},
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            },
-            {
-              "name": "y",
-              "description": "",
-              "schema": {}
-            }
-          ]
         }
       }
     },
@@ -34,21 +19,6 @@
         },
         "cube1": {
           "from_node": "11"
-        },
-        "overlap_resolver": {
-          "process_graph": {},
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            },
-            {
-              "name": "y",
-              "description": "",
-              "schema": {}
-            }
-          ]
         }
       }
     },
@@ -60,21 +30,6 @@
         },
         "cube1": {
           "from_node": "34"
-        },
-        "overlap_resolver": {
-          "process_graph": {},
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            },
-            {
-              "name": "y",
-              "description": "",
-              "schema": {}
-            }
-          ]
         }
       }
     },
@@ -101,19 +56,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            },
-            {
-              "name": "y",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       }
     },
@@ -125,21 +68,6 @@
         },
         "cube2": {
           "from_node": "41"
-        },
-        "overlap_resolver": {
-          "process_graph": {},
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            },
-            {
-              "name": "y",
-              "description": "",
-              "schema": {}
-            }
-          ]
         }
       }
     },
@@ -219,14 +147,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "data",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         },
         "dimension": "t"
       }
@@ -248,14 +169,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "data",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         },
         "dimension": "t"
       }
@@ -347,14 +261,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       }
     },
@@ -376,14 +283,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       }
     },
@@ -425,14 +325,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       }
     },
