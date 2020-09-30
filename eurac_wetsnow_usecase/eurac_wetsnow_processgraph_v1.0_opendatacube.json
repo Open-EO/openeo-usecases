@@ -120,8 +120,7 @@
         },
         "bands": [
           "VH"
-        ],
-        "wavelengths": []
+        ]
       }
     },
     "11": {
@@ -132,8 +131,7 @@
         },
         "bands": [
           "VV"
-        ],
-        "wavelengths": []
+        ]
       }
     },
     "14": {
@@ -344,7 +342,6 @@
         "target": [
           "max_VV"
         ],
-        "source": [],
         "dimension": "bands"
       }
     },
@@ -357,7 +354,6 @@
         "target": [
           "max_VH"
         ],
-        "source": [],
         "dimension": "bands"
       }
     },
@@ -456,7 +452,6 @@
         "target": [
           "rat_VH"
         ],
-        "source": [],
         "dimension": "bands"
       }
     },
@@ -469,7 +464,6 @@
         "target": [
           "rat_VV"
         ],
-        "source": [],
         "dimension": "bands"
       }
     },
@@ -482,7 +476,6 @@
         "target": [
           "cond_0"
         ],
-        "source": [],
         "dimension": "bands"
       }
     },
