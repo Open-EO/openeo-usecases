@@ -90,28 +90,6 @@
         ]
       }
     },
-    "99": {
-      "process_id": "reduce_dimension",
-      "arguments": {
-        "data": {
-          "from_node": "9"
-        },
-        "reducer": {
-          "process_graph": {
-            "1": {
-              "process_id": "min",
-              "arguments": {
-                "data": {
-                  "from_parameter": "data"
-                }
-              },
-              "result": true
-            }
-          }
-        },
-        "dimension": "t"
-      }
-    },
     "10": {
       "process_id": "filter_bands",
       "arguments": {
@@ -295,7 +273,7 @@
       "process_id": "save_result",
       "arguments": {
         "data": {
-          "from_node": "29"
+          "from_node": "1002"
         },
         "format": "GTIFF"
       },
@@ -631,6 +609,214 @@
           "ratVVW"
         ],
         "source": [],
+        "dimension": "bands"
+      }
+    },
+    "99": {
+      "process_id": "reduce_dimension",
+      "arguments": {
+        "data": {
+          "from_node": "9"
+        },
+        "reducer": {
+          "process_graph": {
+            "1": {
+              "process_id": "min",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                }
+              },
+              "result": true
+            }
+          }
+        },
+        "dimension": "t"
+      }
+    },
+    "104": {
+      "process_id": "apply",
+      "arguments": {
+        "data": {
+          "from_node": "99"
+        },
+        "process": {
+          "process_graph": {
+            "1": {
+              "process_id": "lt",
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": 25
+              },
+              "result": true
+            }
+          }
+        }
+      }
+    },
+    "105": {
+      "process_id": "mask",
+      "arguments": {
+        "mask": {
+          "from_node": "104"
+        },
+        "data": {
+          "from_node": "29"
+        },
+        "replacement": 3
+      }
+    },
+    "106": {
+      "process_id": "apply",
+      "arguments": {
+        "data": {
+          "from_node": "99"
+        },
+        "process": {
+          "process_graph": {
+            "1": {
+              "process_id": "gt",
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": 75
+              },
+              "result": true
+            }
+          }
+        }
+      }
+    },
+    "107": {
+      "process_id": "mask",
+      "arguments": {
+        "mask": {
+          "from_node": "106"
+        },
+        "data": {
+          "from_node": "105"
+        },
+        "replacement": 4
+      }
+    },
+    "108": {
+      "process_id": "load_collection",
+      "arguments": {
+        "id": "Modis_snow_eurac",
+        "spatial_extent": {
+          "west": 10.570392608642578,
+          "south": 46.78148963659169,
+          "east": 10.777416229248047,
+          "north": 46.85244345762143
+        },
+        "temporal_extent": [
+          "2015-11-06T00:00:00.000Z",
+          "2016-09-27T00:00:00.000Z"
+        ]
+      }
+    },
+    "109": {
+      "process_id": "resample_spatial",
+      "arguments": {
+        "data": {
+          "from_node": "108"
+        },
+        "resolution": [
+          20,
+          -20
+        ]
+      }
+    },
+    "110": {
+      "process_id": "resample_cube_temporal",
+      "arguments": {
+        "data": {
+          "from_node": "109"
+        },
+        "target": {
+          "from_node": "6"
+        },
+        "method": "near"
+      }
+    },
+    "999": {
+      "process_id": "reduce_dimension",
+      "arguments": {
+        "data": {
+          "from_node": "107"
+        },
+        "reducer": {
+          "process_graph": {
+            "1": {
+              "process_id": "min",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                }
+              },
+              "result": true
+            }
+          }
+        },
+        "dimension": "bands"
+      }
+    },
+    "1000": {
+      "process_id": "apply",
+      "arguments": {
+        "data": {
+          "from_node": "110"
+        },
+        "process": {
+          "process_graph": {
+            "1": {
+              "process_id": "eq",
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": 2
+              },
+              "result": true
+            }
+          }
+        }
+      }
+    },
+    "1001": {
+      "process_id": "mask",
+      "arguments": {
+        "mask": {
+          "from_node": "1000"
+        },
+        "data": {
+          "from_node": "999"
+        },
+        "replacement": 0
+      }
+    },
+    "1002": {
+      "process_id": "reduce_dimension",
+      "arguments": {
+        "data": {
+          "from_node": "1001"
+        },
+        "reducer": {
+          "process_graph": {
+            "1": {
+              "process_id": "min",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                }
+              },
+              "result": true
+            }
+          }
+        },
         "dimension": "bands"
       }
     }
