@@ -12,7 +12,7 @@
           "south": 48.1,
           "east": 16.65,
           "north": 48.31,
-          "crs": "EPSG:4326"
+          "crs": 4326
         },
         "temporal_extent": [
           "2017-03-01",
