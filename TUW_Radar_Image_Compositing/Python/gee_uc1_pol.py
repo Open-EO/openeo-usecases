@@ -6,7 +6,7 @@ con.authenticate_basic("group1", "test123")
 
 datacube = con.load_collection("COPERNICUS/S1_GRD",
                                spatial_extent={"west": 16.06, "south": 48.1, "east": 16.65,
-                                               "north": 48.31, "crs": "EPSG:4326"},
+                                               "north": 48.31, "crs": 4326},
                                temporal_extent=["2017-03-01", "2017-04-01"],
                                bands=["VV", "VH"])
 
