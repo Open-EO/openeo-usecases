@@ -177,10 +177,10 @@ wet_snow_rc = st_apply(rc, MARGIN = c("time"), FUN = function(x){
   case_when(x < thr ~ 1, # wet snow
             x >= thr ~ 2) # no wet snow
 })
-# plot(wet_snow_rc) # kann das stimmen??? kaum wet snow
-# lapply(1:22, function(x)(
-#   table(wet_snow_rc %>% slice(time, x))
-# ))
+# plot(wet_snow_rc %>% slice(time, 1)) # kann das stimmen??? kaum wet snow
+lapply(1:22, function(x)(
+  table(wet_snow_rc %>% slice(time, x))
+))
 
 # create overlay and shadow mask from lia
 lia_mask = st_apply(lia, MARGIN = c("x", "y"), FUN = function(x){
@@ -194,8 +194,8 @@ lia_mask = st_apply(lia, MARGIN = c("x", "y"), FUN = function(x){
 wet_snow = st_apply(wet_snow_rc, MARGIN = c("time"), FUN = function(x){
   lia_mask$S1A_IW_GRDH_20141205T171502_015_LIA_eurac.vrt * x
 })
-# plot(wet_snow, col = c("black", "blue", "red"))
-
+plot(wet_snow %>% slice(), col = c("black", "blue", "red"))
+wet_snow
 # ---------------------------------------------------------------------------- #
 # module 4: add modis snow cover ----
 # ---------------------------------------------------------------------------- #
