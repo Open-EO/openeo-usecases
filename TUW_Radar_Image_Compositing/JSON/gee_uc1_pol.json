@@ -13,7 +13,7 @@
           "south": 48.1,
           "east": 16.65,
           "north": 48.31,
-          "crs": "EPSG:4326"
+          "crs": 4326
         },
         "temporal_extent": [
           "2017-03-01",
@@ -40,14 +40,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "data",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       },
       "description": "Calculating the mean over the whole time stack, resulting in one image of mean values for VV and VH."
@@ -115,14 +108,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "data",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       },
       "description": "Calculate the difference between VH and VV resulting in one image of the difference without a bands dimension"

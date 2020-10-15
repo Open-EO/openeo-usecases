@@ -1,5 +1,5 @@
 library(openeo)
-library(dplyr)
+library(magrittr)
 
 # login info ----
 euracHost = "https://openeo.eurac.edu"
@@ -45,8 +45,11 @@ result = p$save_result(udf, format="NETCDF")
 # debug()
 graph = as(result,"Graph")
 job_id = create_job(con = eurac, graph = graph, title = "test_udf_rclient", description = "test_udf_rclient") # batch call, works on udf!
-start_job(con = eurac, job = job_id)
-done = download_results(job = job_id, folder = "~")
+eurac %>% start_job(job_id)
+# What is the status of the job?
+eurac %>% describe_job(job_id)
+# When it is finished:
+done = download_results(job = job_id, folder = ".")
 done
 
 

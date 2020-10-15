@@ -12,7 +12,7 @@
           "south": 48.1,
           "east": 16.65,
           "north": 48.31,
-          "crs": "EPSG:4326"
+          "crs": 4326
         },
         "temporal_extent": [
           "2017-03-01",
@@ -78,14 +78,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "data",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       },
       "description": "Calculate the mean over March 2017 resulting in a single image of mean values"
@@ -108,14 +101,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "data",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       },
       "description": "Calculate the mean over April 2017 resulting in a single image of mean values"
@@ -138,14 +124,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "data",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       },
       "description": "Calculate the mean over May 2017 resulting in a single image of mean values"

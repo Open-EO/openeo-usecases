@@ -37,3 +37,6 @@ Speedup (multi-threading)
 
 filtered NDVI profile of Winter and Summer wheat
 ![](images/usecase5_wheat.png)
+
+profile of Winter wheat with and without UDF
+![](images/usecase5_udf.png)

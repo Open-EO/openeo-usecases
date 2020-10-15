@@ -137,8 +137,7 @@
                     "from_node": "cloudMask"
                 },
                 "replacement": 0
-            },
-            "result": true
+            }
         },
         "aggreg1": {
             "process_id": "aggregate_spatial",

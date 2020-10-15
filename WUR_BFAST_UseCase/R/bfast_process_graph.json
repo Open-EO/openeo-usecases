@@ -1,0 +1,45 @@
+{ "process_graph": {
+  "load_collection_WOAUT5559Z": {
+    "process_id": "load_collection",
+    "arguments": {
+      "temporal_extent": [
+        "2017-05-01T00:00:00Z",
+        "2019-12-29T00:00:00Z"
+      ],
+      "spatial_extent": {
+        "west": -54.8125,
+        "south": -3.5125,
+        "east": -54.81,
+        "north": -3.51
+      },
+      "id": "openEO_WUR_UseCase",
+      "bands": [
+        "VH"
+      ],
+      "properties": null
+    }
+  },
+  "run_udf_EPIJI2135W": {
+    "process_id": "run_udf",
+    "arguments": {
+      "data": {
+        "from_node": "load_collection_WOAUT5559Z"
+      },
+      "udf": "# @require x:stars\nlibrary(bfast)\nlibrary(abind)\n# set_fast_options()\n# this works because band is a empty dimension\nx = adrop(x)\n\n# Define the pixel-wise function\nSpatialBFM = function(pixels)\n{\n  lsts = ts(pixels, c(2017, 1), frequency=30.666667)\n  bfastmonitor(lsts, 2019, formula=response~trend)$breakpoint\n}\n# either use adrop() to drop the band dimension... or include here to reduce.\n#StarsResult = st_apply(x, c(\"x\", \"y\", \"band\"), SpatialBFM, PROGRESS=TRUE)\nStarsResult = st_apply(x, c(\"x\", \"y\"), SpatialBFM, PROGRESS=TRUE)\n# deal with NA-a:\nStarsResult[is.na(StarsResult)] = -9999\n#\nStarsResult",
+      "context": {},
+      "runtime": "R",
+      "version": null
+    }
+  },
+  "save_result_DBYBA8933V": {
+    "process_id": "save_result",
+    "arguments": {
+      "data": {
+        "from_node": "run_udf_EPIJI2135W"
+      },
+      "format": "NETCDF",
+      "options": {}
+    },
+    "result": true
+  }
+}}
