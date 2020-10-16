@@ -126,7 +126,8 @@ p
 p$filter_bands()
 
 # define a bounding box
-# agricultural fields around wageningen
+# agricultural fields around Wageningen
+# check temporal and spatial data extent for vito terrascope data here: https://viewer.terrascope.be/
 bbox = list(west = 5.61,
             east = 5.66,
             south = 51.97,
@@ -214,6 +215,7 @@ data = p$load_collection(id = "TERRASCOPE_S2_TOC_V2",
                                                 "2018-09-01"))
 
 # calculate the EVI
+# - change the evi function to ndvi
 spectral_reduce = p$reduce_dimension(data = data, dimension = "bands", reducer =  function(x, context) {
   B08 = x[8]
   B04 = x[4]
@@ -222,50 +224,91 @@ spectral_reduce = p$reduce_dimension(data = data, dimension = "bands", reducer =
 })
 
 # select the minimum EVI along the time dimension
+# - change reducer funciton to max
 temporal_reduce = p$reduce_dimension(data = spectral_reduce, 
                                      dimension = "t", 
-                                     reducer = function(x, context) {p$min(x)})
+                                     reducer = function(x, context) {p$min(x)}) 
 
 # save the result
 result = p$save_result(data = temporal_reduce, format="GTiff")
-
-# print process graph as JSON
 graph = as(result, "Graph")
 graph
-
-# client side graph validation
 graph$validate()
 
 # compute the result and check if the graph was valid
 compute_result(graph = graph, format="GTiff", output_file = "s2_evi.tif")
 
+# load result
+s2_evi = stars::read_stars("s2_evi.tif")
+s2_evi
+plot(s2_evi)
+
 # ---------------------------------------------------------------------------- #
 # Further examples ----
 # ---------------------------------------------------------------------------- #
 
-# - load with different formats, timescales, regions, collections (e.g. json for timeseries of a pixel)
-# - processing evi, ndvi
-# - compare calculated ndvi vs ndvi terrascope, extract pixel values
-# - aggregation on time dimension min, max, mean
-# - thresholding/masking ndvi
-# - data fusion, spatial resampling
+# These are ideas/snippets of how to alter the process graph above to achieve different goals
 
+# - processing ndvi instead of evi ----
+spectral_reduce = p$reduce_dimension(data = data, dimension = "bands", reducer =  function(x, context) {
+  B04 = x[4]
+  B02 = x[2]
+  (B04-B02) / (B04+B02)
+})
 
-# code for json pixel timeseries ----
+# - compare calculated ndvi vs ndvi terrascope ----
+data = p$load_collection(id = "TERRASCOPE_S2_NDVI_V2", 
+                         spatial_extent = bbox,
+                         temporal_extent = list("2018-08-01", 
+                                                "2018-09-01"))
+
+# - load ndvi pixel timeseries as json ---- 
 # one point in the fields
-# bbox = list(west = 5.61,
-#             east = 5.61,
-#             south = 51.97,
-#             north = 51.97)
+bbox = list(west = 5.61,
+            east = 5.61,
+            south = 51.97,
+            north = 51.97)
 
+# load ndvi data
+# see above; maybe extend timeline
 
-s2_json = fromJSON("s2_subset.json")
-names(s2_json)
-s2_json$dims
-s2_json$data
-s2_json$coords
+# save as json
+result = p$save_result(data = data, format="JSON")
 
-s2_json = jsonlite::fromJSON(s2_json)
+# compute the result and check if the graph was valid
+compute_result(graph = graph,
+               format = "JSON",
+               output_file = "s2_pixel.json")
+
+# load json into r
+s2_pixel = fromJSON("s2_pixel.json")
+names(s2_pixel)
+s2_pixel$dims
+s2_pixel$coords
+s2_pixel$data # many missig values look here to see why: https://viewer.terrascope.be/
+ndvi_ts = data.frame(ndvi = s2_pixel$data, 
+                     day = as.Date(s2_pixel$coords$t$data), 
+                     stringsAsFactors = FALSE)
+ndvi_ts$ndvi[ndvi_ts$ndvi == 255] = NA
+plot(ndvi_ts$day, ndvi_ts$ndvi)
+library(ggplot2)
+ggplot(data=ndvi_ts, aes(x=day, y=ndvi, group=1)) +
+  geom_line()+
+  geom_point()
+
+# - thresholding/masking ndvi ----
+# mask based on a threshold
+describe_process("mask")
+mask = p$apply(data = temporal_reduce, process = function(x, context) {p$lt(x = x, y = 0.1)})
+
+masked = p$mask(data = temporal_reduce, 
+                mask = mask, 
+                replacement = 0)
+
+# - data fusion
+# load ndvi
+# load toc
+# merge_cubes
 
 
 # storing user processes on the backend ----------------------------------------
@@ -273,7 +316,7 @@ s2_json = jsonlite::fromJSON(s2_json)
 # create_user_process()
 # delete_user_process()
 
-# EURAC UDF --------------------------------------------------------------------
+# Eurac backend ----------------------------------------------------------------
 host = "https://openeo.eurac.edu/"
 con_eurac = connect(host = host)
 View(con_eurac$api.mapping)
