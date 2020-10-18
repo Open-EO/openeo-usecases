@@ -181,9 +181,10 @@ s2
 st_dimensions(s2)
 
 # refine the dimension definitions
-s2_m = merge(s2) 
+s2_m = merge(s2)
 s2_m = st_set_dimensions(s2_m, 4, values = paste0("band", 1:3))
 s2_m = st_set_dimensions(s2_m, names = c("x", "y", "t", "band"))
+st_dimensions(s2_m)
 
 # plot the result
 plot(s2_m)
@@ -192,12 +193,12 @@ image(s2_m[,,,1,], rgb = c(3,2,1))
 plot(dplyr::slice(s2_m, t, 1)) # If we have dplyr
 
 # for larger jobs do batch processing: not supported by all backends
-# job_id = create_job(con = con,
-#                     graph = graph,
-#                     title = "s2_subset",
-#                     description = "s2_subset")
-# job_id
-# start_job(job_id$id, con = con)
+job_id = create_job(con = con,
+                   graph = result,
+                   title = "s2_subset",
+                   description = "s2_subset")
+job_id
+start_job(job_id$id, con = con)
 # done = download_results(job = job_id, folder = ".")
 # done
 
