@@ -1,6 +1,6 @@
 # openEO r-client - live demonstration and guided tour
 # 2020-10-19
-# Dainius Masilianus, Peter Zellner, Florian Lahn
+# Dainius Masiliunas, Peter Zellner, Florian Lahn
 
 # ---------------------------------------------------------------------------- #
 # Preparation -----
@@ -26,11 +26,10 @@ packageVersion("openeo")
 # libs 
 library(openeo)
 
+# Optional, for visualisation
 library(stars)
 library(sf)
 library(mapview)
-library(dplyr)
-library(jsonlite)
 
 # ---------------------------------------------------------------------------- #
 # Backend Discovery ----
@@ -170,7 +169,7 @@ graph$validate()
 
 # compute the result and check if the graph was valid
 # - change format and extension according to "save_result"
-compute_result(graph = graph,
+compute_result(result,
                format = "NetCDF",
                output_file = "s2_subset.ncdf")
 
@@ -182,13 +181,15 @@ s2
 st_dimensions(s2)
 
 # refine the dimension definitions
-s2_m = merge(s2) %>% 
-  st_set_dimensions(4, values = paste0("band", 1:3)) %>%
-  st_set_dimensions(names = c("x", "y", "t", "band"))
+s2_m = merge(s2) 
+s2_m = st_set_dimensions(s2_m, 4, values = paste0("band", 1:3))
+s2_m = st_set_dimensions(s2_m, names = c("x", "y", "t", "band"))
 
 # plot the result
-plot(s2_m %>% slice(t, 1))
-image(s2_m %>% slice(t, 1), rgb = c(3,2,1))
+plot(s2_m)
+plot(s2_m[,,,1,])
+image(s2_m[,,,1,], rgb = c(3,2,1))
+plot(dplyr::slice(s2_m, t, 1)) # If we have dplyr
 
 # for larger jobs do batch processing: not supported by all backends
 # job_id = create_job(con = con,
@@ -204,6 +205,10 @@ image(s2_m %>% slice(t, 1), rgb = c(3,2,1))
 # ---------------------------------------------------------------------------- #
 # Processing ----
 # ---------------------------------------------------------------------------- #
+
+# Optional
+library(raster)
+library(jsonlite)
 
 # Minimal EVI over time --------------------------------------------------------
 
@@ -236,12 +241,17 @@ graph
 graph$validate()
 
 # compute the result and check if the graph was valid
-compute_result(graph = graph, format="GTiff", output_file = "s2_evi.tif")
+(resultfile = compute_result(graph = graph, format="GTiff", output_file = "s2_evi.tif"))
 
 # load result
-s2_evi = stars::read_stars("s2_evi.tif")
+s2_evi = stars::read_stars(resultfile)
 s2_evi
 plot(s2_evi)
+
+# It's a GeoTIFF, so we can also use raster
+s2_raster = raster::raster(resultfile)
+raster::plot(s2_raster, zlim=c(-30,0))
+mapview(s2_raster)
 
 # ---------------------------------------------------------------------------- #
 # Further examples ----
@@ -281,7 +291,7 @@ compute_result(graph = graph,
                output_file = "s2_pixel.json")
 
 # load json into r
-s2_pixel = fromJSON("s2_pixel.json")
+s2_pixel = jsonlite::fromJSON("s2_pixel.json")
 names(s2_pixel)
 s2_pixel$dims
 s2_pixel$coords
