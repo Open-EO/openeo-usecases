@@ -258,30 +258,68 @@ mapview(s2_raster)
 # Further examples ----
 # ---------------------------------------------------------------------------- #
 
-# These are ideas/snippets of how to alter the process graph above to achieve different goals
+# ---------------------------------------------------------------------------- #
+# Further examples ----
+# ---------------------------------------------------------------------------- #
 
-# - processing ndvi instead of evi ----
+# These are ideas/snippets of how to alter the process graph above 
+# to achieve different goals
+
+# - processing ndvi instead of evi ---------------------------------------------
+# replace the spectral_reduce part from above with this code block
+# save the result as "s2_ndvi.tif" (you can use the code from above and change the name)
+# load it to R and compare to s2_evi
 spectral_reduce = p$reduce_dimension(data = data, dimension = "bands", reducer =  function(x, context) {
   B04 = x[4]
-  B02 = x[2]
-  (B04-B02) / (B04+B02)
+  B08 = x[8]
+  (B08-B04) / (B08+B04)
 })
 
-# - compare calculated ndvi vs ndvi terrascope ----
+# - compare calculated ndvi vs ndvi terrascope ---------------------------------
+# Load this ndvi product and save the result (save_result).
+# Load your calculated ndvi and the Terrascope ndvi product and plot both.
+# The Terrascope ndvi product is stored in values of 0 to 255. 
+# To get to the data range of -1 to 1 rescale (linear_scale_range).
+# To compare the result to the previously calculated max ndvi, also compute 
+# the temporal maximum (reduce_temporal).
+# Then compare the two, for example by plotting them
 data = p$load_collection(id = "TERRASCOPE_S2_NDVI_V2", 
                          spatial_extent = bbox,
                          temporal_extent = list("2018-08-01", 
                                                 "2018-09-01"))
+# optional: rescale original values to -1 to 1
+rescaled = p$linear_scale_range(x = data, 
+                                inputMin = 0, inputMax = 254, 
+                                outputMin = -1, outputMax = 1)
 
-# - load ndvi pixel timeseries as json ---- 
-# one point in the fields
+# get the temporal maximum 
+# in case you don't want to rescale replace data = rescaled by data = data
+temporal_reduce = p$reduce_dimension(data = rescaled, 
+                                     dimension = "t", 
+                                     reducer = function(x, context) {p$max(x)})
+
+# save result
+result = p$save_result(data = temporal_reduce, format = "GTiff")
+
+# compute the result
+compute_result(graph = result,
+               format = "GTiff",
+               output_file = "s2_ndvi_precomputed.tif")
+
+# load and plot both ndvi versions
+s2_ndvi = stars::read_stars("s2_ndvi.tif")
+s2_ndvi_precomputed = stars::read_stars("s2_ndvi_precomputed.tif")
+plot(s2_ndvi)
+plot(s2_ndvi_precomputed)
+
+# - load ndvi pixel timeseries as json ----------------------------------------- 
+# In order to receive a pixel time series conveniently: 
+# Load the Terrascope ndvi product using a bounding box that represents a point
+# as the one below. Then save the result as json. And load it into r. 
 bbox = list(west = 5.61,
             east = 5.61,
             south = 51.97,
             north = 51.97)
-
-# load ndvi data
-# see above; maybe extend timeline
 
 # save as json
 result = p$save_result(data = data, format="JSON")
@@ -292,49 +330,73 @@ compute_result(graph = graph,
                output_file = "s2_pixel.json")
 
 # load json into r
-s2_pixel = jsonlite::fromJSON("s2_pixel.json")
+s2_pixel = fromJSON("s2_ts.json")
+
+# explore the json object
 names(s2_pixel)
 s2_pixel$dims
 s2_pixel$coords
-s2_pixel$data # many missig values look here to see why: https://viewer.terrascope.be/
+
+# many missig values look here to see why: https://viewer.terrascope.be/
+# to get a more meaningful time series extend the temporal extent upon load_collection 
+s2_pixel$data 
+
+# restructure to a data frame
 ndvi_ts = data.frame(ndvi = s2_pixel$data, 
                      day = as.Date(s2_pixel$coords$t$data), 
                      stringsAsFactors = FALSE)
+
+# replace missing values
 ndvi_ts$ndvi[ndvi_ts$ndvi == 255] = NA
+
+# plot
 plot(ndvi_ts$day, ndvi_ts$ndvi)
 library(ggplot2)
 ggplot(data=ndvi_ts, aes(x=day, y=ndvi, group=1)) +
   geom_line()+
   geom_point()
 
-# - thresholding/masking ndvi ----
-# mask based on a threshold
-describe_process("mask")
-mask = p$apply(data = temporal_reduce, process = function(x, context) {p$lt(x = x, y = 0.1)})
+# - data fusion ----
+# load ndvi (load_cube)
+# load toc (load_cube)
+# then merge the cubes using the function merge_cubes.
+# cubes need the same dimension properties, otherwise an overlap resolver is needed
+# or resampling beforehand check the definition of merge_cubes for more info.
+# see the definition of merge_cubes
+openeo::process_viewer("merge_cubes")
 
-masked = p$mask(data = temporal_reduce, 
-                mask = mask, 
-                replacement = 0)
+# load the Terrascope ndvi product it has the dims: x, y, t, bands
+ndvi = p$load_collection(id = "TERRASCOPE_S2_NDVI_V2", 
+                         spatial_extent = bbox,
+                         temporal_extent = list("2018-08-01", 
+                                                "2018-09-01"))
 
-# - data fusion
-# load ndvi
-# load toc
-# merge_cubes
+# load the Terrascope top of canopy data with 
+# the same spatial and temporal extent as the ndvi.
+# It also has the dims: x, y, t, bands
+toc = p$load_collection(id = "TERRASCOPE_S2_TOC_V2", 
+                        spatial_extent = bbox,
+                        temporal_extent = list("2018-08-01", 
+                                               "2018-09-01"))
 
+# merge the two cubes into one cube. All dimensions but bands are identical. 
+# The band of the ndvi data cube and the toc bands will be combined, while the
+# other dimensions stay constant.
+merged = p$merge_cubes(cube1 = ndvi, cube2 = toc)
 
-# storing user processes on the backend ----------------------------------------
-# list_user_processes()
-# create_user_process()
-# delete_user_process()
+# save
+result = p$save_result(data = merged, format="NetCDF")
+graph = as(result, "Graph")
+graph$validate()
 
-# Eurac backend ----------------------------------------------------------------
-host = "https://openeo.eurac.edu/"
-con_eurac = connect(host = host)
-View(con_eurac$api.mapping)
+# compute the result
+compute_result(graph = result, format="NetCDF", output_file = "s2_merge.ncdf")
 
-data = p$load_collection(id = "Backscatter_Sentinel1_Track015_Regular_Timeseries_2", 
-                         spatial_extent= list(east= 8.36,
-                                              north= 47.51,
-                                              south= 47.509,
-                                              west= 8.359))
-
+# load result
+s2_merge = stars::read_stars("s2_merge.ncdf")
+names(s2_merge)
+s2_merge = merge(s2_merge) %>% 
+  st_set_dimensions(4, values = names(s2_merge)) %>%
+  st_set_dimensions(names = c("x", "y", "t", "band"))
+s2_merge
+st_get_dimension_values(s2_merge, "band")
