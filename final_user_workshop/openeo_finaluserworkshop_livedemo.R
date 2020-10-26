@@ -258,10 +258,6 @@ mapview(s2_raster)
 # Further examples ----
 # ---------------------------------------------------------------------------- #
 
-# ---------------------------------------------------------------------------- #
-# Further examples ----
-# ---------------------------------------------------------------------------- #
-
 # These are ideas/snippets of how to alter the process graph above 
 # to achieve different goals
 
@@ -356,7 +352,7 @@ ggplot(data=ndvi_ts, aes(x=day, y=ndvi, group=1)) +
   geom_line()+
   geom_point()
 
-# - data fusion ----
+# - data fusion ----------------------------------------------------------------
 # load ndvi (load_cube)
 # load toc (load_cube)
 # then merge the cubes using the function merge_cubes.
