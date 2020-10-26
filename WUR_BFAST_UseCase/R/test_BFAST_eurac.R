@@ -19,6 +19,7 @@ eurac = connect(host = euracHost,
 # collection descritption ----
 eurac %>% describe_collection("openEO_S2_32632_10m_L2A_D22")
 eurac %>% describe_collection("openEO_WUR_UseCase")
+eurac %>% describe_collection("openEO_WUR_Usecase")
 list_udf_runtimes(eurac)
 
 # build graph ----
@@ -30,7 +31,7 @@ udfCode = readChar(udfName, file.info(udfName)$size)
 # c("2019-04-21T00:00:00.000Z"," 2019-06-08T00:00:00.000Z")
 # c("2017-05-01T00:00:00Z","2019-12-29T00:00:00Z")
 
-s2 = p$load_collection(id = p$data$openEO_WUR_UseCase, 
+s2 = p$load_collection(id = p$data$openEO_WUR_Usecase, 
                        spatial_extent = list(west = -54.8125, 
                                              south = -3.5125, 
                                              east =  -54.8100, 
@@ -42,9 +43,11 @@ udf = p$run_udf(data = s2, udf = udfCode, runtime = 'R') #"r"
 
 result = p$save_result(udf, format="NETCDF")
 
-# debug()
+# We can use debug() to see verbose information
+# Also get the JSON text of the process graph:
 graph = as(result,"Graph")
-job_id = create_job(con = eurac, graph = graph, title = "test_udf_rclient", description = "test_udf_rclient") # batch call, works on udf!
+
+job_id = create_job(con = eurac, graph = result, title = "test_udf_rclient", description = "test_udf_rclient") # batch call, works on udf!
 eurac %>% start_job(job_id)
 # What is the status of the job?
 eurac %>% describe_job(job_id)
