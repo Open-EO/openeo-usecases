@@ -26,10 +26,10 @@ datacube = p$reduce_dimension(data = mean,dimension = dims$bands,reducer = funct
 blue = p$add_dimension(data = datacube,name="bands", type="bands", label="B")
 
 green = p$filter_bands(data=mean, bands = c("VH"))
-green = p$rename_labels(data=green, dimension = "bands", target = c("G"))
+green = p$rename_labels(data=green, dimension = "bands", target = c("G"), source = c("VH"))
 
 red = p$filter_bands(data=mean, bands = c("VV"))
-red = p$rename_labels(data=red, dimension = "bands", target = c("R"))
+red = p$rename_labels(data=red, dimension = "bands", target = c("R"), source = c("VV"))
 
 GB = p$merge_cubes(cube1 = green, cube2 = blue)
 RGB = p$merge_cubes(cube1 = GB, cube2 = red)
