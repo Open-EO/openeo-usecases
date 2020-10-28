@@ -122,6 +122,9 @@
         "dimension": "bands",
         "target": [
           "R"
+        ],
+        "source": [
+          "VV"
         ]
       },
       "description": "Rename VV band label to R"
@@ -135,6 +138,9 @@
         "dimension": "bands",
         "target": [
           "G"
+        ],
+        "source": [
+          "VH"
         ]
       },
       "description": "Rename VH band label to G"
