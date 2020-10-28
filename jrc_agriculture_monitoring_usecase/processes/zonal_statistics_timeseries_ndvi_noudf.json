@@ -1,0 +1,177 @@
+{
+    "process_graph":
+    {
+        "dc": {
+            "process_id": "load_collection",
+            "description": "Loading the data; The order of the specified bands is important for the following reduce operation.",
+            "arguments": {
+                "id": "S2MSI2A",
+                "spatial_extent": {
+                    "west": 5.251809,
+                    "east": 5.462144,
+                    "north": 51.838069,
+                    "south": 51.705835
+                },
+                "temporal_extent": [
+                    "2019-01-01T00:00:00.000Z",
+                    "2020-01-01T00:00:00.000Z"
+                ],
+                "bands": ["B4","B8","SCL"],
+                "properties": {
+                    "eo:cloud_cover": {
+                        "process_graph": {
+                            "cc": {
+                                "process_id": "between",
+                                "arguments": {
+                                    "x": {
+                                        "from_parameter": "value"
+                                    },
+                                    "min": 0,
+                                    "max": 70
+                                },
+                                "result": true
+                            }
+                        }
+                    },
+                    "eo:mgrs": {
+                        "process_graph": {
+                            "mgrs": {
+                                "process_id": "eq",
+                                "arguments": {
+                                    "x": {
+                                        "from_parameter":"value"
+                                    },
+                                    "y": "31UFT"
+                                },
+                            	"result": true
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "ndvi": {
+            "process_id": "reduce_dimension",
+            "arguments": {
+                "data": {
+                    "from_node": "dc"
+                },
+                "reducer": {
+                    "process_graph": {
+                        "red": {
+                            "process_id": "array_element",
+                            "arguments": {
+                                "data": {
+                                    "from_parameter": "data"
+                                },
+                                "label": "B4"
+                            }
+                        },
+                        "nir": {
+                            "process_id": "array_element",
+                            "arguments": {
+                                "data": {
+                                    "from_parameter": "data"
+                                },
+                                "label": "B8"
+                            }
+                        },
+                        "ndvi": {
+                            "process_id": "normalized_difference",
+                            "arguments": {
+                                "x": {
+                                    "from_node": "nir"
+                                },
+                                "y": {
+                                    "from_node": "red"
+                                }
+                            },
+                            "result": true
+                        }
+                    }
+                },
+                "dimension": "bands"
+            },
+        "description": "Compute the NDVI: (NIR - RED) / (NIR + RED)"
+        },
+        "cloudMask": {
+            "process_id": "reduce_dimension",
+            "arguments": {
+                "data": {
+                    "from_node": "dc"
+                },
+                "dimension": "bands",
+                "reducer": {
+                    "process_graph": {
+                        "scl": {
+                            "process_id": "array_element",
+                            "arguments": {
+                                "data": {
+                                    "from_parameter": "data"
+                                },
+                                "label": "SCL"
+                            }
+                        },
+                        "eq1": {
+                            "process_id": "neq",
+                            "arguments": {
+                                "x": {
+                                    "from_node": "scl"
+                                },
+                                "y": 4
+                            },
+                            "result": true
+                        }
+                    }
+                }
+            },
+            "description": "Scene classification mask"
+        },
+        "maskedNdvi": {
+            "process_id": "mask",
+            "arguments": {
+                "data": {
+                    "from_node": "ndvi"
+                },
+                "mask": {
+                    "from_node": "cloudMask"
+                },
+                "replacement": 0
+            }
+        },
+        "aggreg1": {
+            "process_id": "aggregate_spatial",
+            "description": "aggregate spatial using mean value",
+            "arguments": {
+                "data": {"from_node": "maskedNdvi"},
+                "geometries": {
+                    "type": "file",
+                    "path": "BRP_Gewaspercelen_2017.gdb"
+                },
+                "context": {
+                    "buffer": -10,
+                    "srcnodata": 0
+                },
+                "reducer": {
+                    "process_graph": {
+                        "mean": {
+                            "process_id": "mean",
+                            "arguments": {
+                                "data": {"from_parameter": "data"}
+                            },
+                            "result": true
+                        }
+                    }
+                }
+            }
+        },
+        "save": {
+            "process_id": "save_result",
+            "arguments": {
+                "data": {"from_node": "aggreg1"},
+                "format": "JSON"
+            },
+            "result": true
+        }
+    }
+}

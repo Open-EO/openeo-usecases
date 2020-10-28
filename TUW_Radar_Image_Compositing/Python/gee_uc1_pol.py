@@ -2,11 +2,11 @@ import openeo
 
 # Connect to backend via basic authentication
 con = openeo.connect("https://earthengine.openeo.org/v1.0")
-con.authenticate_basic("group1", "test123")
+con.authenticate_basic("group8", "test123")
 
 datacube = con.load_collection("COPERNICUS/S1_GRD",
                                spatial_extent={"west": 16.06, "south": 48.1, "east": 16.65,
-                                               "north": 48.31, "crs": "EPSG:4326"},
+                                               "north": 48.31, "crs": 4326},
                                temporal_extent=["2017-03-01", "2017-04-01"],
                                bands=["VV", "VH"])
 
@@ -25,16 +25,15 @@ blue = datacube.add_dimension(name="bands", label="B", type="bands")
 # G
 
 green = mean.filter_bands(["VH"])
-green = green.rename_labels(dimension="bands", target=["G"])
+green = green.rename_labels(dimension="bands", target=["G"], source=["VH"])
 
 # R
 
 red = mean.filter_bands(["VV"])
-red = red.rename_labels(dimension="bands", target=["R"])
+red = red.rename_labels(dimension="bands", target=["R"], source=["VV"])
 
 # RGB
-
-datacube = red.merge(green).merge(blue)
+datacube = red.merge_cubes(green).merge_cubes(blue)
 
 datacube = datacube.save_result(format="GTIFF-THUMB")
 
