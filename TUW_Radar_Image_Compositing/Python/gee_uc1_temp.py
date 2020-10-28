@@ -21,12 +21,12 @@ mean_march = march.mean_time()
 mean_april = april.mean_time()
 mean_may = may.mean_time()
 
-R_band = mean_march.rename_labels(dimension="bands", target=["R"])
-G_band = mean_april.rename_labels(dimension="bands", target=["G"])
-B_band = mean_may.rename_labels(dimension="bands", target=["B"])
+R_band = mean_march.rename_labels(dimension="bands", target=["R"], source=["VV"])
+G_band = mean_april.rename_labels(dimension="bands", target=["G"], source=["VV"])
+B_band = mean_may.rename_labels(dimension="bands", target=["B"], source=["VV"])
 
-RG = R_band.merge(G_band)
-RGB = RG.merge(B_band)
+RG = R_band.merge_cubes(G_band)
+RGB = RG.merge_cubes(B_band)
 
 datacube = RGB.save_result(format="GTIFF-THUMB")
 

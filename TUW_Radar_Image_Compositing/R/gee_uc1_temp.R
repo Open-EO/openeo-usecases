@@ -31,9 +31,9 @@ mean_april = p$reduce_dimension(data = april,dimension = dims$t,reducer = functi
 mean_may = p$reduce_dimension(data = may,dimension = dims$t,reducer = function(x, context) {
   mean(x)})
 
-R_band = p$rename_labels(data = mean_march, dimension = "bands", target = c("R"), source = array())
-G_band = p$rename_labels(data = mean_april, dimension = "bands", target = c("G"), source = array())
-B_band = p$rename_labels(data = mean_may, dimension = "bands", target = c("B"), source = array())
+R_band = p$rename_labels(data = mean_march, dimension = "bands", target = c("R"), source = c("VV"))
+G_band = p$rename_labels(data = mean_april, dimension = "bands", target = c("G"), source = c("VV"))
+B_band = p$rename_labels(data = mean_may, dimension = "bands", target = c("B"), source = c("VV"))
 
 RG = p$merge_cubes(cube1 = R_band, cube2 = G_band)
 RGB = p$merge_cubes(cube1 = RG, cube2 = B_band)
