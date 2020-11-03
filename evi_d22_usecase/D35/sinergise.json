@@ -3,7 +3,7 @@
     "dc": {
       "process_id": "load_collection",
       "arguments": {
-        "id": "TERRASCOPE_S2_TOC_V2",
+        "id": "S2L1C",
         "spatial_extent": {
           "west": 11.279182434082033,
           "south": 46.464349400461145,
@@ -11,13 +11,13 @@
           "north": 46.522729291844286
         },
         "temporal_extent": [
-          "2020-06-04T00:00:00.000Z",
-          "2020-06-23T00:00:00.000Z"
+          "2018-06-04T00:00:00.000Z",
+          "2018-06-23T00:00:00.000Z"
         ],
         "bands": [
-          "TOC-B08_10M",
-          "TOC-B04_10M",
-          "TOC-B02_10M"
+          "B08",
+          "B04",
+          "B02"
         ]
       },
       "description": "Loading the data; The order of the specified bands is important for the following reduce operation."
@@ -126,9 +126,9 @@
             }
           }
         },
-        "dimension": "bands"
+        "dimension": "band"
       },
-      "description": "Compute the EVI. Formula: 2.5 * (NIR - RED) / (´1 + NIR + 6*RED + -7.5*BLUE)"
+      "description": "Compute the EVI. Formula: 2.5 * (NIR - RED) / (1 + NIR + 6*RED + -7.5*BLUE)"
     },
     "mintime": {
       "process_id": "reduce_dimension",
