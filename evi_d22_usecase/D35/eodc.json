@@ -3,22 +3,23 @@
     "dc": {
       "process_id": "load_collection",
       "arguments": {
-        "id": "openEO_S2_32632_10m_L1C_D22_test",
+        "id": "s2a_prd_msil1c",
         "spatial_extent": {
-          "west":11.279182434082033,
-          "south":46.464349400461145,
-          "east":11.406898498535158,
-          "north":46.522729291844286
+          "west": 11.279182434082033,
+          "south": 46.464349400461145,
+          "east": 11.406898498535158,
+          "north": 46.522729291844286
         },
         "temporal_extent": [
-          "2018-06-14",
-          "2018-06-23"
+          "2018-06-04T00:00:00.000Z",
+          "2018-06-23T00:00:00.000Z"
         ],
         "bands": [
           "B08",
           "B04",
           "B02"
-        ]
+        ],
+        "properties": {}
       },
       "description": "Loading the data; The order of the specified bands is important for the following reduce operation."
     },
@@ -75,7 +76,7 @@
               "process_id": "sum",
               "arguments": {
                 "data": [
-                  1,
+                  10000,
                   {
                     "from_node": "nir"
                   },
@@ -127,7 +128,8 @@
           }
         },
         "dimension": "bands"
-      }
+      },
+      "description": "Compute the EVI. Formula: 2.5 * (NIR - RED) / (10000 + NIR + 6*RED + -7.5*BLUE)"
     },
     "mintime": {
       "process_id": "reduce_dimension",
@@ -148,7 +150,7 @@
             }
           }
         },
-        "dimension": "temporal"
+        "dimension": "t"
       },
       "description": "Compute a minimum time composite by reducing the temporal dimension"
     },
@@ -158,7 +160,7 @@
         "data": {
           "from_node": "mintime"
         },
-        "format": "GTiff"
+        "format": "GTIFF"
       },
       "result": true
     }
