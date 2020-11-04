@@ -436,7 +436,14 @@ my_pal = grDevices::colorRampPalette(my_pal)
 bbox_map = st_as_sfc(st_bbox(tst))
 
 # save mapviews as .png to folder
-map_dir = "/home/pzellner@eurac.edu/test_wetsnow_gif/"
+map_dir = "/home/pzellner@eurac.edu/test_wetsnow_gif_wide/"
+vwidth = 992
+vheight = 744
+# h = 6.83 # height
+# w = 14.29 # width
+# vwidth = 1000
+# vheight = vwidth*(h/w)
+
 for (i in 1:nlayers(tst)) {
   message(paste0("at ", i, " of ", nlayers(tst)))
   message(names(tst[[i]]))
@@ -462,11 +469,12 @@ for (i in 1:nlayers(tst)) {
   # save as png
   mapview::mapshot(x = mv, 
                    file = paste0(map_dir, names(tst2), ".png"), 
-                   remove_controls = c("zoomControl", "homeButton", "layersControl"))
+                   remove_controls = c("zoomControl", "homeButton", "layersControl"),
+                   vwidth = vwidth,
+                   vheight = vheight)
   
   
 }
-
 
 # make gif
 library(magick)
