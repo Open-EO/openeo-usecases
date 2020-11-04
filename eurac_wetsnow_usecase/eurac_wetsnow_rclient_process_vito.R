@@ -1,4 +1,4 @@
-# Eurac Wet Snow Use Case - Eurac Backend
+# Eurac Wet Snow Use Case - VITO Backend
 
 # libraries --------------------------------------------------------------------
 #devtools::install_github(repo="Open-EO/openeo-r-client",ref="develop",dependencies=TRUE)
@@ -8,17 +8,14 @@ as.data.frame(installed.packages()) %>%
   filter(grepl(pattern = "openeo", x = Package, ignore.case = T))
 
 
-# connection to openEO Eurac backend -------------------------------------------
-driver_url = "https://openeo.eurac.edu"
-user = "guest" #  "guest"
-password = "guest_123"  #  "guest_123"
-api_versions(url=driver_url)
+# connection to openEO vito backend -------------------------------------------
+# driver_url = "https://openeo.eurac.edu"
+# user = "guest" #  "guest"
+# password = "guest_123"  #  "guest_123"
 
-# httr::set_config(httr::config(ssl_verifypeer = 0L))
-# httr::set_config(httr::config(ssl_verifyhost= 0L))
-# driver_url = "https://10.8.244.137:8443"
-# user = "guest"
-# password = "guest_123"
+user = "user"
+password = "user123"
+driver_url = "https://openeo.vito.be"
 
 conn = connect(host = driver_url, 
                user = user, 
@@ -28,9 +25,8 @@ conn = connect(host = driver_url,
 
 
 # get some descriptions of eurac backend ---------------------------------------
-describe_collection("Backscatter_Sentinel1_Track015_Regular_Timeseries_Tiled_1000")
-describe_collection("LIA_Sentinel1_Track015_Ingested")
-describe_collection("EURAC_SNOW_CLOUDREMOVAL_MODIS_ALPS_LAEA")
+describe_collection("S1_GRD_SIGMA0_ASCENDING")
+#describe_collection("EURAC_SNOW_CLOUDREMOVAL_MODIS_ALPS_LAEA") # snow mask is missing
 
 # process graph ----------------------------------------------------------------
 # define an spatial extent
@@ -39,37 +35,44 @@ aoi = list("west" = 10.570392608642578,
            "south" = 46.78148963659169,
            "east" = 10.777416229248047,
            "north" = 46.85244345762143)
+# canazei
+aoi = list("west" = 11.495501519821119,
+           "south" = 46.33970892265867,
+           "east" = 12.04481792607112,
+           "north" = 46.51293492736491)
+
 
 # define an temporal extent
-timespan = c("2015-11-06T00:00:00.000Z",   
-             "2016-09-25T00:00:00.000Z")
-timespan = c("2015-01-28T00:00:00.000Z",   
-             "2016-01-28T00:00:00.000Z")
+# timespan = c("2015-11-06T00:00:00.000Z",   
+#              "2016-09-25T00:00:00.000Z")
+timespan = c("2018-01-01T00:00:00.000Z",   
+             "2019-01-01T00:00:00.000Z")
 
 # get processes available on backend
 p = processes()
 
 # load data cube, filter temporally and spatially ------------------------------
-s1a = p$load_collection(id = "Backscatter_Sentinel1_Track015_Regular_Timeseries_Tiled_1000", 
+s1a = p$load_collection(id = "S1_GRD_SIGMA0_ASCENDING", 
                         temporal_extent = timespan, 
-                        spatial_extent = aoi , bands = c("VV", "VH")) 
-                        # bands = "VV") #c("VV", "VH")
+                        spatial_extent = aoi , bands = c("VV", "VH", "angle")) 
 
 # part1: normalize backscatter data by temporal mean ---------------------------
 # filter bands (polarization)
 vv = p$filter_bands(data = s1a, bands = "VV")
 vh = p$filter_bands(data = s1a, bands = "VH")
+lia = p$filer_bands(data = s1a, bands = "angle")
 
 # apply temporal min to each polarization
 vv_min = p$reduce_dimension(data = vv, dimension = "temporal", reducer = function(x, context) {p$min(x)})
 vh_min = p$reduce_dimension(data = vh, dimension = "temporal", reducer = function(x, context) {p$min(x)})
 
-int_result = p$save_result(data = vv_min, format = "json")
+list_file_formats()
+int_result = p$save_result(data = vv_min, format = "GTiff")
 graph = as(int_result, "Graph")
 graph
 graph$validate()
 
-(resultfile = compute_result(graph = graph, format="json", output_file = "int_result.json"))
+(resultfile = compute_result(graph = graph, format="GTiff", output_file = "int_result.GTiff"))
 job_id = create_job(con = conn,
                     graph = graph,
                     title = "intres",
