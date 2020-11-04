@@ -406,9 +406,88 @@ tmap_save(tm1, "/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wets
 
 
 
-# further ideas ----
-# plot with background map and transparency
-# visualize as gif
+# plot with background map and transparency ----
+# # (load("/home/pzellner@eurac.edu/git_projects/openeo-usecases/eurac_wetsnow_usecase/eurac_wetsnow_stars_process.rdata"))
+# wet_snow_fin_openeo = stars::read_stars("/mnt/CEPH_FS_RASDAMAN/wetsnow_vinschgau.tif")
+# # 0 = no snow, 1 = wetsnow, 2 = drysnow, 3 = uncl. snow, 4 = uncl. snow
+# 
+# my_pal = c("transparent", "lightblue", "blue", "grey", "darkgrey")
+# # this is mixing up the legend and colors for some reason
+# mapview(wet_snow_fin_openeo %>% slice("band", 8), col.regions = my_pal, at = c(0, 1, 2, 3, 4), layer.name = "Wet Snow Map")
+# mapview(wet_snow_fin_openeo, band = 8, col.regions = my_pal, layer.name = "Wet Snow Map")
+
+# visualize with basemap as raster object and make gif----
+# load openEO result
+tst = raster::stack("/mnt/CEPH_FS_RASDAMAN/wetsnow_vinschgau.tif") # 0 = no snow, 1 = wetsnow, 2 = drysnow, 3 = uncl. snow, 4 = uncl. snow
+
+# assign dates
+dates = c("20151106","20151118","20151130","20151212","20151224","20160117",
+          "20160129","20160210","20160305","20160317","20160329","20160410",
+          "20160422","20160504","20160516","20160528","20160609","20160715",
+          "20160727","20160808","20160901","20160925")
+dates = as.Date.character(dates, format = "%Y%m%d")
+dates = as.Date(dates, format = "%Y-%m-%d")
+names(tst) = as.character(dates)
+
+# make color palette
+my_pal = c("lightblue", "white", "grey")
+my_pal = grDevices::colorRampPalette(my_pal)
+
+bbox_map = st_as_sfc(st_bbox(tst))
+
+# save mapviews as .png to folder
+map_dir = "/home/pzellner@eurac.edu/test_wetsnow_gif/"
+for (i in 1:nlayers(tst)) {
+  message(paste0("at ", i, " of ", nlayers(tst)))
+  message(names(tst[[i]]))
+  message(Sys.time())
+  # select layer (time step) and prepare
+  tst2 = tst[[i]]
+  tst2[tst2 == 0] = NA
+  tst2[tst2 >= 3] = 3
+  tst2 = ratify(tst2)
+  levels(tst2)[[1]]$letter_lbl_1 <- c("1 - wet snow", "2 - dry snow", "3 - uncl. snow")
+  
+  # make the mapview element
+  mv = mapview(tst2, col.regions = my_pal, 
+               layer.name = paste0("Wet Snow Map - ", 
+                                   substr(gsub(pattern = "\\.", 
+                                               replacement = "-", 
+                                               x = names(tst2)), 
+                                          2, 11)), 
+               method = "ngb", na.color = "transparent", 
+               map.types = ("Esri.WorldImagery")) + mapview(bbox_map, col.regions = "transparent")
+
+  
+  # save as png
+  mapview::mapshot(x = mv, 
+                   file = paste0(map_dir, names(tst2), ".png"), 
+                   remove_controls = c("zoomControl", "homeButton", "layersControl"))
+  
+  
+}
+
+
+# make gif
+library(magick)
+png_files <- list.files(path = map_dir, pattern = ".png", full.names = TRUE) #Mention the number of files to read
+gif_convert <- function(x, output_name)#Create a function to read, animate and convert the files to gif
+{
+  image_read(x) %>%
+    image_animate(fps = 1) %>%
+    image_write(output_name)
+}
+
+gif_convert(png_files, output_name = paste0(map_dir, "wetsnow_animation.gif"))
+
+
+
+# visualize as gif with raster::animate ----
+tst = raster::stack("/mnt/CEPH_FS_RASDAMAN/wetsnow_vinschgau.tif") # 0 = no snow, 1 = wetsnow, 2 = drysnow, 3 = uncl. snow, 4 = uncl. snow
+hist(raster::values(tst$wetsnow_vinschgau.1))
+raster::animate(tst)
+
+
 # add dem
 # make 3d gif with underlying dem to see where the snow gets wet and when
 
