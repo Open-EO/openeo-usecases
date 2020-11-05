@@ -3,16 +3,16 @@
     "dc": {
       "process_id": "load_collection",
       "arguments": {
-        "id": "openEO_S2_32632_10m_L1C_D22_test",
+        "id": "openEO_S2_32632_10m_L2A_D22",
         "spatial_extent": {
-          "west":11.279182434082033,
-          "south":46.464349400461145,
-          "east":11.406898498535158,
-          "north":46.522729291844286
+          "west": 11.279182434082033,
+          "south": 46.464349400461145,
+          "east": 11.406898498535158,
+          "north": 46.522729291844286
         },
         "temporal_extent": [
-          "2018-06-14",
-          "2018-06-23"
+          "2018-06-06T00:00:00Z",
+          "2018-06-21T00:00:00Z"
         ],
         "bands": [
           "B08",
@@ -30,6 +30,46 @@
         },
         "reducer": {
           "process_graph": {
+            "1": {
+              "process_id": "add",
+              "arguments": {
+                "y": {
+                  "from_node": "nir"
+                },
+                "x": 1
+              }
+            },
+            "2": {
+              "process_id": "add",
+              "arguments": {
+                "y": {
+                  "from_node": "p1"
+                },
+                "x": {
+                  "from_node": "1"
+                }
+              }
+            },
+            "3": {
+              "process_id": "add",
+              "arguments": {
+                "y": {
+                  "from_node": "p2"
+                },
+                "x": {
+                  "from_node": "2"
+                }
+              }
+            },
+            "blue": {
+              "process_id": "array_element",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                },
+                "index": 2
+              }
+            },
             "nir": {
               "process_id": "array_element",
               "arguments": {
@@ -37,6 +77,24 @@
                   "from_parameter": "data"
                 },
                 "index": 0
+              }
+            },
+            "red": {
+              "process_id": "array_element",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                },
+                "index": 1
+              }
+            },
+            "p2": {
+              "process_id": "multiply",
+              "arguments": {
+                "x": -7.5,
+                "y": {
+                  "from_node": "blue"
+                }
               }
             },
             "sub": {
@@ -50,6 +108,15 @@
                 }
               }
             },
+            "p1": {
+              "process_id": "multiply",
+              "arguments": {
+                "x": 6,
+                "y": {
+                  "from_node": "red"
+                }
+              }
+            },
             "div": {
               "process_id": "divide",
               "arguments": {
@@ -57,7 +124,7 @@
                   "from_node": "sub"
                 },
                 "y": {
-                  "from_node": "sum"
+                  "from_node": "3"
                 }
               }
             },
@@ -70,59 +137,6 @@
                 }
               },
               "result": true
-            },
-            "sum": {
-              "process_id": "sum",
-              "arguments": {
-                "data": [
-                  1,
-                  {
-                    "from_node": "nir"
-                  },
-                  {
-                    "from_node": "p1"
-                  },
-                  {
-                    "from_node": "p2"
-                  }
-                ]
-              }
-            },
-            "red": {
-              "process_id": "array_element",
-              "arguments": {
-                "data": {
-                  "from_parameter": "data"
-                },
-                "index": 1
-              }
-            },
-            "p1": {
-              "process_id": "multiply",
-              "arguments": {
-                "x": 6,
-                "y": {
-                  "from_node": "red"
-                }
-              }
-            },
-            "blue": {
-              "process_id": "array_element",
-              "arguments": {
-                "data": {
-                  "from_parameter": "data"
-                },
-                "index": 2
-              }
-            },
-            "p2": {
-              "process_id": "multiply",
-              "arguments": {
-                "x": -7.5,
-                "y": {
-                  "from_node": "blue"
-                }
-              }
             }
           }
         },
