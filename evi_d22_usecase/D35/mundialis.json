@@ -149,7 +149,7 @@
             }
           }
         },
-        "dimension": "t"
+        "dimension": "temporal"
       },
       "description": "Compute a minimum time composite by reducing the temporal dimension"
     },

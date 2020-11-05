@@ -1,45 +1,12 @@
 {
   "process_graph": {
-    "mc1": {
-      "process_id": "merge_cubes",
-      "arguments": {
-        "cube1": {
-          "from_node": "loadcollection3"
-        },
-        "cube2": {
-          "from_node": "loadcollection6"
-        }
-      }
-    },
-    "mc2": {
-      "process_id": "merge_cubes",
-      "arguments": {
-        "cube1": {
-          "from_node": "loadcollection2"
-        },
-        "cube2": {
-          "from_node": "loadcollection5"
-        }
-      }
-    },
-    "mc3": {
-      "process_id": "merge_cubes",
-      "arguments": {
-        "cube1": {
-          "from_node": "loadcollection1"
-        },
-        "cube2": {
-          "from_node": "loadcollection4"
-        }
-      }
-    },
     "loadcollection1": {
       "process_id": "load_collection",
       "arguments": {
         "bands": [
           "VV"
         ],
-        "id": "s1a_csar_grdh_iw",
+        "id": "utm32n.openeo.strds.sentinel1_Sigma0_VV",
         "spatial_extent": {
           "west": 16.06,
           "south": 48.1,
@@ -49,117 +16,58 @@
         },
         "temporal_extent": [
           "2017-03-01",
-          "2017-04-01"
-        ]
-      }
-    },
-    "loadcollection2": {
-      "process_id": "load_collection",
-      "arguments": {
-        "bands": [
-          "VV"
-        ],
-        "id": "s1a_csar_grdh_iw",
-        "spatial_extent": {
-          "west": 16.06,
-          "south": 48.1,
-          "east": 16.65,
-          "north": 48.31,
-          "crs": 4326
-        },
-        "temporal_extent": [
-          "2017-04-01",
-          "2017-05-01"
-        ]
-      }
-    },
-    "loadcollection3": {
-      "process_id": "load_collection",
-      "arguments": {
-        "bands": [
-          "VV"
-        ],
-        "id": "s1a_csar_grdh_iw",
-        "spatial_extent": {
-          "west": 16.06,
-          "south": 48.1,
-          "east": 16.65,
-          "north": 48.31,
-          "crs": 4326
-        },
-        "temporal_extent": [
-          "2017-05-01",
           "2017-06-01"
         ]
-      }
-    },
-    "loadcollection4": {
-      "process_id": "load_collection",
-      "arguments": {
-        "bands": [
-          "VV"
-        ],
-        "id": "s1b_csar_grdh_iw",
-        "spatial_extent": {
-          "west": 16.06,
-          "south": 48.1,
-          "east": 16.65,
-          "north": 48.31,
-          "crs": 4326
-        },
-        "temporal_extent": [
-          "2017-03-01",
-          "2017-04-01"
-        ]
-      }
-    },
-    "loadcollection5": {
-      "process_id": "load_collection",
-      "arguments": {
-        "bands": [
-          "VV"
-        ],
-        "id": "s1b_csar_grdh_iw",
-        "spatial_extent": {
-          "west": 16.06,
-          "south": 48.1,
-          "east": 16.65,
-          "north": 48.31,
-          "crs": 4326
-        },
-        "temporal_extent": [
-          "2017-04-01",
-          "2017-05-01"
-        ],
-        "properties": {}
       },
       "description": "Load Sentinel 1 VV data over Vienna from March to May 2017"
     },
-    "loadcollection6": {
-      "process_id": "load_collection",
+    "filtertemporal1": {
+      "process_id": "filter_temporal",
       "arguments": {
-        "bands": [
-          "VV"
-        ],
-        "id": "s1b_csar_grdh_iw",
-        "spatial_extent": {
-          "west": 16.06,
-          "south": 48.1,
-          "east": 16.65,
-          "north": 48.31,
-          "crs": 4326
+        "data": {
+          "from_node": "loadcollection1"
         },
-        "temporal_extent": [
+        "extent": [
+          "2017-03-01",
+          "2017-04-01"
+        ],
+        "dimension": "temporal"
+      },
+      "description": "Selecting only data from March 2017"
+    },
+    "filtertemporal2": {
+      "process_id": "filter_temporal",
+      "arguments": {
+        "data": {
+          "from_node": "loadcollection1"
+        },
+        "extent": [
+          "2017-04-01",
+          "2017-05-01"
+        ],
+        "dimension": "temporal"
+      },
+      "description": "Selecting only data from April 2017"
+    },
+    "filtertemporal3": {
+      "process_id": "filter_temporal",
+      "arguments": {
+        "data": {
+          "from_node": "loadcollection1"
+        },
+        "extent": [
           "2017-05-01",
           "2017-06-01"
-        ]
-      }
+        ],
+        "dimension": "temporal"
+      },
+      "description": "Selecting only data from May 2017"
     },
     "reducedimension1": {
       "process_id": "reduce_dimension",
       "arguments": {
         "data": {
-          "from_node": "mc3"
+          "from_node": "filtertemporal1"
         },
         "dimension": "t",
         "reducer": {
@@ -182,7 +90,7 @@
       "process_id": "reduce_dimension",
       "arguments": {
         "data": {
-          "from_node": "mc2"
+          "from_node": "filtertemporal2"
         },
         "dimension": "t",
         "reducer": {
@@ -205,7 +113,7 @@
       "process_id": "reduce_dimension",
       "arguments": {
         "data": {
-          "from_node": "mc1"
+          "from_node": "filtertemporal3"
         },
         "dimension": "t",
         "reducer": {
@@ -302,8 +210,7 @@
         "data": {
           "from_node": "mergecubes2"
         },
-        "format": "GTIFF",
-        "options": {}
+        "format": "GTIFF"
       },
       "description": "Save the result in a GeoTiff file",
       "result": true
