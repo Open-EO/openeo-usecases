@@ -5,16 +5,15 @@
       "arguments": {
         "id": "Backscatter_Sentinel1_Track015",
         "spatial_extent": {
-			"east": 11.416511535644531,
-			"south": 46.406617041056165,
-			"north": 46.550361051816196,
-			"west": 11.257896423339844
+          "east": 11.416511535644531,
+          "south": 46.406617041056165,
+          "north": 46.550361051816196,
+          "west": 11.257896423339844
         },
         "temporal_extent": [
-		  "2015-11-06T00:00:00.000Z",
-		  "2016-09-25T00:00:00.000Z"
-        ],
-        "bands": null
+          "2015-11-06T00:00:00.000Z",
+          "2016-09-25T00:00:00.000Z"
+        ]
       }
     },
     "3": {
@@ -40,19 +39,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            },
-            {
-              "name": "y",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       }
     },
@@ -108,14 +95,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       }
     },
@@ -149,14 +129,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       }
     },
@@ -190,14 +163,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       }
     },
@@ -219,14 +185,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       }
     },
@@ -246,16 +205,15 @@
       "arguments": {
         "id": "EURAC_SNOW_CLOUDREMOVAL_MODIS_ALPS_LAEA",
         "spatial_extent": {
-			"east": 11.416511535644531,
-			"south": 46.406617041056165,
-			"north": 46.550361051816196,
-			"west": 11.257896423339844
+          "east": 11.416511535644531,
+          "south": 46.406617041056165,
+          "north": 46.550361051816196,
+          "west": 11.257896423339844
         },
         "temporal_extent": [
-		  "2015-11-06T00:00:00.000Z",
-		  "2016-09-25T00:00:00.000Z"
-        ],
-        "bands": null
+          "2015-11-06T00:00:00.000Z",
+          "2016-09-25T00:00:00.000Z"
+        ]
       }
     },
     "24": {
@@ -287,14 +245,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       }
     },
@@ -325,16 +276,15 @@
       "arguments": {
         "id": "LIA_Sentinel1_Track015",
         "spatial_extent": {
-			"east": 11.416511535644531,
-			"south": 46.406617041056165,
-			"north": 46.550361051816196,
-			"west": 11.257896423339844
+          "east": 11.416511535644531,
+          "south": 46.406617041056165,
+          "north": 46.550361051816196,
+          "west": 11.257896423339844
         },
         "temporal_extent": [
-		  "2015-11-06T00:00:00.000Z",
-		  "2016-09-25T00:00:00.000Z"
-        ],
-		"bands": null
+          "2015-11-06T00:00:00.000Z",
+          "2016-09-25T00:00:00.000Z"
+        ]
       }
     },
     "mod_snow_cover_resampled": {
@@ -356,8 +306,7 @@
         },
         "bands": [
           "VV"
-        ],
-        "wavelengths": []
+        ]
       }
     },
     "VH_series": {
@@ -422,14 +371,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       }
     },
@@ -451,14 +393,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       }
     },
@@ -492,14 +427,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       }
     },
@@ -520,14 +448,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "data",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         },
         "dimension": "bands"
       }
@@ -555,19 +476,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            },
-            {
-              "name": "y",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       }
     },
@@ -588,14 +497,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "data",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         },
         "dimension": "bands"
       }
@@ -623,19 +525,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            },
-            {
-              "name": "y",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       }
     },
@@ -657,14 +547,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       }
     },
@@ -709,8 +592,7 @@
               },
               "result": true
             }
-          },
-          "parameters": []
+          }
         }
       }
     },
@@ -732,14 +614,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       }
     },
@@ -778,19 +653,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "x",
-              "description": "",
-              "schema": {}
-            },
-            {
-              "name": "y",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       }
     },
@@ -873,14 +736,7 @@
               },
               "result": true
             }
-          },
-          "parameters": [
-            {
-              "name": "data",
-              "description": "",
-              "schema": {}
-            }
-          ]
+          }
         }
       }
     },
