@@ -1,6 +1,6 @@
 {
   "process_graph": {
-    "mc1": {
+    "1": {
       "process_id": "merge_cubes",
       "arguments": {
         "cube1": {
@@ -15,10 +15,9 @@
       "process_id": "load_collection",
       "arguments": {
         "bands": [
-          "VV",
           "VH"
         ],
-        "id": "s1a_csar_grdh_iw",
+        "id": "utm32n.openeo.strds.sentinel1_Sigma0_VH",
         "spatial_extent": {
           "west": 16.06,
           "south": 48.1,
@@ -29,8 +28,7 @@
         "temporal_extent": [
           "2017-03-01",
           "2017-04-01"
-        ],
-        "properties": {}
+        ]
       },
       "description": "Loading Sentinel 1 data for VV and VH over Vienna in March 2017"
     },
@@ -38,10 +36,9 @@
       "process_id": "load_collection",
       "arguments": {
         "bands": [
-          "VV",
-          "VH"
+          "VV"
         ],
-        "id": "s1b_csar_grdh_iw",
+        "id": "utm32n.openeo.strds.sentinel1_Sigma0_VV",
         "spatial_extent": {
           "west": 16.06,
           "south": 48.1,
@@ -52,8 +49,7 @@
         "temporal_extent": [
           "2017-03-01",
           "2017-04-01"
-        ],
-        "properties": {}
+        ]
       },
       "description": "Loading Sentinel 1 data for VV and VH over Vienna in March 2017"
     },
@@ -61,9 +57,9 @@
       "process_id": "reduce_dimension",
       "arguments": {
         "data": {
-          "from_node": "mc1"
+          "from_node": "1"
         },
-        "dimension": "t",
+        "dimension": "temporal",
         "reducer": {
           "process_graph": {
             "mean1": {
@@ -222,12 +218,7 @@
         "data": {
           "from_node": "mergecubes2"
         },
-        "format": "GTIFF",
-        "options": {
-          "red": "R",
-          "green": "G",
-          "blue": "B"
-        }
+        "format": "GTIFF"
       },
       "description": "Save the resulting datacube as GeoTiff",
       "result": true
