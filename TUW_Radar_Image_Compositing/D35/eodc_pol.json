@@ -1,5 +1,16 @@
 {
   "process_graph": {
+    "1": {
+      "process_id": "merge_cubes",
+      "arguments": {
+        "cube1": {
+          "from_node": "loadcollection1"
+        },
+        "cube2": {
+          "from_node": "loadcollection2"
+        }
+      }
+    },
     "loadcollection1": {
       "process_id": "load_collection",
       "arguments": {
@@ -7,7 +18,7 @@
           "VV",
           "VH"
         ],
-        "id": "TERRASCOPE_S1_GAMMA0_V1",
+        "id": "s1a_csar_grdh_iw",
         "spatial_extent": {
           "west": 16.06,
           "south": 48.1,
@@ -18,7 +29,31 @@
         "temporal_extent": [
           "2017-03-01",
           "2017-04-01"
-        ]
+        ],
+        "properties": {}
+      },
+      "description": "Loading Sentinel 1 data for VV and VH over Vienna in March 2017"
+    },
+    "loadcollection2": {
+      "process_id": "load_collection",
+      "arguments": {
+        "bands": [
+          "VV",
+          "VH"
+        ],
+        "id": "s1b_csar_grdh_iw",
+        "spatial_extent": {
+          "west": 16.06,
+          "south": 48.1,
+          "east": 16.65,
+          "north": 48.31,
+          "crs": 4326
+        },
+        "temporal_extent": [
+          "2017-03-01",
+          "2017-04-01"
+        ],
+        "properties": {}
       },
       "description": "Loading Sentinel 1 data for VV and VH over Vienna in March 2017"
     },
@@ -26,7 +61,7 @@
       "process_id": "reduce_dimension",
       "arguments": {
         "data": {
-          "from_node": "loadcollection1"
+          "from_node": "1"
         },
         "dimension": "t",
         "reducer": {
@@ -84,7 +119,7 @@
                 "data": {
                   "from_parameter": "data"
                 },
-                "index": 1
+                "label": "VH"
               }
             },
             "arrayelement2": {
@@ -93,7 +128,7 @@
                 "data": {
                   "from_parameter": "data"
                 },
-                "index": 0
+                "label": "VV"
               }
             },
             "subtract1": {
