@@ -23,9 +23,7 @@
       },
       "bands": [
         "VH"
-      ],
-      "common_names": [],
-      "wavelengths": []
+      ]
     }
   },
   "3": {
@@ -47,8 +45,7 @@
           }
         }
       },
-      "dimension": "temporal",
-      "target_dimension": null
+      "dimension": "temporal"
     }
   },
   "4": {
@@ -59,9 +56,7 @@
       },
       "bands": [
         "VH"
-      ],
-      "common_names": [],
-      "wavelengths": []
+      ]
     }
   },
   "5": {
@@ -101,9 +96,7 @@
       },
       "bands": [
         "VV"
-      ],
-      "common_names": [],
-      "wavelengths": []
+      ]
     }
   },
   "8": {
@@ -125,8 +118,7 @@
           }
         }
       },
-      "dimension": "temporal",
-      "target_dimension": null
+      "dimension": "temporal"
     }
   },
   "9": {
@@ -456,8 +448,7 @@
               "x": {
                 "from_argument": "x"
               },
-              "y": 1,
-              "delta": null
+              "y": 1
             },
             "result": true
           }
@@ -565,8 +556,7 @@
             "result": true
           }
         }
-      },
-      "dimension": null
+      }
     }
   },
   "36": {
@@ -594,8 +584,7 @@
               "x": {
                 "from_argument": "x"
               },
-              "y": 2,
-              "delta": null
+              "y": 2
             },
             "result": true
           }
