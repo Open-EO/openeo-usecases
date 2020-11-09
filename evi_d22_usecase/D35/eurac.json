@@ -1,0 +1,180 @@
+{
+  "process_graph": {
+    "dc": {
+      "process_id": "load_collection",
+      "arguments": {
+        "id": "openEO_S2_32632_10m_L2A_D22",
+        "spatial_extent": {
+          "west": 11.279182434082033,
+          "south": 46.464349400461145,
+          "east": 11.406898498535158,
+          "north": 46.522729291844286
+        },
+        "temporal_extent": [
+          "2018-06-07T00:00:00Z",
+          "2018-06-20T00:00:00Z"
+        ],
+        "bands": [
+          "B08",
+          "B04",
+          "B02"
+        ]
+      },
+      "description": "Loading the data; The order of the specified bands is important for the following reduce operation."
+    },
+    "evi": {
+      "process_id": "reduce_dimension",
+      "arguments": {
+        "data": {
+          "from_node": "dc"
+        },
+        "reducer": {
+          "process_graph": {
+            "1": {
+              "process_id": "add",
+              "arguments": {
+                "y": {
+                  "from_node": "nir"
+                },
+                "x": 1
+              }
+            },
+            "2": {
+              "process_id": "add",
+              "arguments": {
+                "y": {
+                  "from_node": "p1"
+                },
+                "x": {
+                  "from_node": "1"
+                }
+              }
+            },
+            "3": {
+              "process_id": "add",
+              "arguments": {
+                "y": {
+                  "from_node": "p2"
+                },
+                "x": {
+                  "from_node": "2"
+                }
+              }
+            },
+            "blue": {
+              "process_id": "array_element",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                },
+                "index": 2
+              }
+            },
+            "nir": {
+              "process_id": "array_element",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                },
+                "index": 0
+              }
+            },
+            "red": {
+              "process_id": "array_element",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                },
+                "index": 1
+              }
+            },
+            "p2": {
+              "process_id": "multiply",
+              "arguments": {
+                "x": -7.5,
+                "y": {
+                  "from_node": "blue"
+                }
+              }
+            },
+            "sub": {
+              "process_id": "subtract",
+              "arguments": {
+                "x": {
+                  "from_node": "nir"
+                },
+                "y": {
+                  "from_node": "red"
+                }
+              }
+            },
+            "p1": {
+              "process_id": "multiply",
+              "arguments": {
+                "x": 6,
+                "y": {
+                  "from_node": "red"
+                }
+              }
+            },
+            "div": {
+              "process_id": "divide",
+              "arguments": {
+                "x": {
+                  "from_node": "sub"
+                },
+                "y": {
+                  "from_node": "3"
+                }
+              }
+            },
+            "p3": {
+              "process_id": "multiply",
+              "arguments": {
+                "x": 2.5,
+                "y": {
+                  "from_node": "div"
+                }
+              },
+              "result": true
+            }
+          }
+        },
+        "dimension": "bands"
+      }
+    },
+    "mintime": {
+      "process_id": "reduce_dimension",
+      "arguments": {
+        "data": {
+          "from_node": "evi"
+        },
+        "reducer": {
+          "process_graph": {
+            "min": {
+              "process_id": "min",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                }
+              },
+              "result": true
+            }
+          }
+        },
+        "dimension": "temporal"
+      },
+      "description": "Compute a minimum time composite by reducing the temporal dimension"
+    },
+    "save": {
+      "process_id": "save_result",
+      "arguments": {
+        "data": {
+          "from_node": "mintime"
+        },
+        "format": "GTiff"
+      },
+      "result": true
+    }
+  }
+}
