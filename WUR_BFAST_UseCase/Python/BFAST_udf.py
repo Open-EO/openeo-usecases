@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from openeo_udf.api.datacube import DataCube
 
-def bfast4openeo(udf_cube: DataCube) -> DataCube
+def apply_datacube(udf_cube: DataCube,context:dict) -> DataCube:
     """
     Apply the BFASTmonitor method to detect a break at the end of time-series of the datacube.
     This UDF reduce the time dimension of the input datacube. 
@@ -20,7 +20,7 @@ def bfast4openeo(udf_cube: DataCube) -> DataCube
     start_monitor = datetime(2019, 1, 1)
     end_monitor = datetime(2019, 12, 29)
     # get the dates from the data cube:
-    dates = [pd.Timestamp(date).to_pydatetime() for date in my_xarray.coords['time'].values]
+    dates = [pd.Timestamp(date).to_pydatetime() for date in my_xarray.coords['t'].values]
     # pre-processing - crop the input data cube according to the history and monitor periods:
     data, dates = crop_data_dates(my_xarray.values, dates, start_hist, end_monitor)
     # !!! Note !!! that data has the shape 91, and not 92 for our dataset. The reason is the definition in
