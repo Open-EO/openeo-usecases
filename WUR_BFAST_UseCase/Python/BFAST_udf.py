@@ -18,7 +18,7 @@ def apply_datacube(udf_cube: DataCube,context:dict) -> DataCube:
     #select single band, removes band dimension
     my_xarray = my_xarray.sel(bands='VV')
     #
-    start_hist = datetime(2016, 12, 31)
+    start_hist = datetime(2017, 5, 1)
     start_monitor = datetime(2019, 1, 1)
     end_monitor = datetime(2019, 12, 29)
     # get the dates from the data cube:
