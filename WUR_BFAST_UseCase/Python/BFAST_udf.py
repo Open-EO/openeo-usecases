@@ -15,6 +15,8 @@ def apply_datacube(udf_cube: DataCube,context:dict) -> DataCube:
     """
     # convert the openEO datacube into the xarray DataArray structure
     my_xarray: xr.DataArray = udf_cube.get_array()
+    #select single band, removes band dimension
+    my_xarray = my_xarray.sel(bands='VV')
     #
     start_hist = datetime(2016, 12, 31)
     start_monitor = datetime(2019, 1, 1)
@@ -42,8 +44,8 @@ def apply_datacube(udf_cube: DataCube,context:dict) -> DataCube:
     model.fit(data, dates)
     # get the detected breaks as an xarray Data Array:
     breaks_xr = xr.DataArray(model.breaks,
-                             coords=[my_xarray.coords['y'].values, my_xarray.coords['x'].values],
-                             dims=['y', 'x'])
+                             coords=[my_xarray.coords['x'].values, my_xarray.coords['y'].values],
+                             dims=['x', 'y'])
     # return the breaks as openEO DataCube:
     return DataCube(breaks_xr)
 
