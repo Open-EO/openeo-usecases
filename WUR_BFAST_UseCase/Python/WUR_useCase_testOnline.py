@@ -13,6 +13,29 @@ session = openeo.connect(DRIVER_URL).authenticate_basic(username=my_user, passwo
 s1 = session.load_collection("SENTINEL1_GAMMA0_SENTINELHUB",bands=["VV"])
 s1_cube: DataCube = s1.filter_bbox(west=-54.8125,south=-3.5125,east=-54.8100,north=-3.5100)\
     .filter_temporal("2019-05-01", "2019-12-29")
+
+fieldgeom = {
+    "type": "FeatureCollection",
+    "name": "small_field",
+    "crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:OGC:1.3:CRS84"}},
+    "features": [
+        {"type": "Feature", "properties": {}, "geometry": {"type": "Polygon", "coordinates": [
+            [[5.008769, 51.218417], [5.008769, 51.227135], [5.023449, 51.227135], [5.023449, 51.218417],
+             [5.008769, 51.218417]]]}}
+    ]
+}
+import shapely
+from shapely import affinity
+
+polys = shapely.geometry.GeometryCollection(
+    [shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in fieldgeom["features"]])
+polys = affinity.scale(polys, 1., 1.)
+extent = dict(zip(["west", "south", "east", "north"], polys.bounds))
+extent['crs'] = "EPSG:4326"
+
+s1_belgium = session.load_collection("S1_GRD_SIGMA0_ASCENDING", bands=["VV"])
+s1_belgium: DataCube = s1_belgium.filter_temporal("2016-01-01", "2020-12-29").filter_bbox(**extent)
+
 # -------------------------------------
 #  functions to load the UDF code:
 def get_resource(relative_path):
@@ -33,28 +56,8 @@ def test_download_terrascope():
 
     @return:
     """
-    fieldgeom = {
-        "type": "FeatureCollection",
-        "name": "small_field",
-        "crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:OGC:1.3:CRS84"}},
-        "features": [
-            {"type": "Feature", "properties": {}, "geometry": {"type": "Polygon", "coordinates": [
-                [[5.008769, 51.218417], [5.008769, 51.227135], [5.023449, 51.227135], [5.023449, 51.218417],
-                 [5.008769, 51.218417]]]}}
-        ]
-    }
-    import shapely
-    from shapely import affinity
-    polys = shapely.geometry.GeometryCollection(
-        [shapely.geometry.shape(feature["geometry"]).buffer(0) for feature in fieldgeom["features"]])
-    polys = affinity.scale(polys, 1., 1.)
-    extent = dict(zip(["west", "south", "east", "north"], polys.bounds))
-    extent['crs'] = "EPSG:4326"
-    bboxpoly = shapely.geometry.Polygon.from_bounds(*polys.bounds)
 
-    s1 = session.load_collection("S1_GRD_SIGMA0_ASCENDING", bands=["VV"])
-    s1_cube: DataCube = s1.filter_temporal("2016-01-01", "2020-12-29").filter_bbox(**extent)#.mask_polygon(polys)
-    s1_cube.download("sigma0_cube_terrascope.nc",format="NetCDF")
+    s1_belgium.download("sigma0_cube_terrascope.nc",format="NetCDF")
 
 def test_run_udf_offline():
     from openeo.rest.conversions import datacube_from_file
@@ -63,14 +66,14 @@ def test_run_udf_offline():
     apply_datacube(udf_cube,context={})
 
 
-def test_run_udf():
+def test_run_udf_terrascope():
 
     # -------------------------------------
     # load the UDF code:
     BFASTMonitor_breaks = load_udf('BFAST_udf.py')
 
     # apply the UDF:
-    S1_breaks = s1_cube.reduce_dimension(BFASTMonitor_breaks, runtime='Python')
+    S1_breaks = s1_belgium.reduce_temporal_udf(code=BFASTMonitor_breaks, runtime='Python')
 
     # download the results:
     S1_breaks.download('BFASTmonitor_breaks_vito_backend.nc', format='NetCDF')
