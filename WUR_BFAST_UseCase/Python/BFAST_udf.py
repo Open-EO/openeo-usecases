@@ -1,6 +1,5 @@
 from bfast import BFASTMonitor
 from bfast.utils import crop_data_dates
-from datetime import datetime
 import xarray as xr
 import pandas as pd
 import numpy as np
@@ -13,6 +12,7 @@ def apply_datacube(udf_cube: DataCube,context:dict) -> DataCube:
     :param udf_cube: the openEO virtual DataCube object 
     :return DataCube(breaks_xr):
     """
+    from datetime import datetime
     # convert the openEO datacube into the xarray DataArray structure
     my_xarray: xr.DataArray = udf_cube.get_array()
     #select single band, removes band dimension
