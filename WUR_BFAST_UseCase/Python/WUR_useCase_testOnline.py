@@ -28,4 +28,3 @@ S1_breaks = s1_cube.reduce_dimension(BFASTMonitor_breaks, runtime='Python')
 
 # download the results:
 S1_breaks.download('BFASTmonitor_breaks_vito_backend.nc', format='NetCDF')
-
