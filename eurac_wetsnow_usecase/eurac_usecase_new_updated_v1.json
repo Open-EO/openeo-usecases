@@ -1,4 +1,10 @@
 {
+ "title":"test",
+ "description":"test",
+ "plan":"free",
+ "budget":null,
+ "process":
+  {
   "process_graph": {
     "1": {
       "process_id": "merge_cubes",
@@ -200,12 +206,12 @@
       "arguments": {
         "temporal_extent": [
           "2015-01-28T00:00:00.000Z",
-          "2015-02-20T00:00:00.000Z"
+          "2015-03-20T00:00:00.000Z"
         ],
         "spatial_extent": {
-          "east": 8.36,
-          "south": 47.509,
-          "north": 47.51,
+          "east": 8.4,
+          "south": 46.95,
+          "north": 47,
           "west": 8.359
         },
         "id": "Backscatter_Sentinel1_Track015_Regular_Timeseries_Tiled_1000"
@@ -219,9 +225,9 @@
           "2014-12-05T00:00:00.000Z"
         ],
         "spatial_extent": {
-          "east": 8.36,
-          "south": 47.509,
-          "north": 47.51,
+          "east": 8.4,
+          "south": 46.95,
+          "north": 47,
           "west": 8.359
         },
         "id": "LIA_Sentinel1_Track015_Ingested",
@@ -445,12 +451,12 @@
       "arguments": {
         "temporal_extent": [
           "2015-01-28T00:00:00.000Z",
-          "2015-02-20T00:00:00.000Z"
+          "2015-03-20T00:00:00.000Z"
         ],
         "spatial_extent": {
-          "east": 8.36,
-          "south": 47.509,
-          "north": 47.51,
+          "east": 8.4,
+          "south": 46.95,
+          "north": 47,
           "west": 8.359
         },
         "id": "Backscatter_Sentinel1_Track015_Regular_Timeseries_2"
@@ -476,9 +482,9 @@
           "2014-12-05T00:00:00.000Z"
         ],
         "spatial_extent": {
-          "east": 8.36,
-          "south": 47.509,
-          "north": 47.51,
+          "east": 8.4,
+          "south": 46.95,
+          "north": 47,
           "west": 8.359
         },
         "id": "LIA_Sentinel1_Track015_Ingested",
@@ -603,11 +609,175 @@
       }
     }
   },
+  "336": {
+      "process_id": "load_collection",
+      "arguments": {
+        "temporal_extent": [
+          "2015-01-28T00:00:00.000Z",
+          "2015-03-20T00:00:00.000Z"
+        ],
+        "spatial_extent": {
+          "east": 8.4,
+          "south": 46.95,
+          "north": 47,
+          "west": 8.359
+        },
+        "id": "Backscatter_Sentinel1_Track015_Regular_Timeseries_Tiled_1000"
+      }
+    },
+	"310": {
+      "process_id": "filter_bands",
+      "arguments": {
+        "data": {
+          "from_node": "336"
+        },
+        "bands": [
+          "VH"
+        ],
+        "wavelengths": []
+      }
+    },
+	
+    "339": {
+      "process_id": "load_collection",
+      "arguments": {
+        "temporal_extent": [
+          "2014-12-05T00:00:00.000Z",
+          "2014-12-05T00:00:00.000Z"
+        ],
+        "spatial_extent": {
+          "east": 8.4,
+          "south": 46.95,
+          "north": 47,
+          "west": 8.359
+        },
+        "id": "LIA_Sentinel1_Track015_Ingested",
+        "bands": [
+          "LIA"
+        ]
+      }
+    },
+	"334": {
+    "process_id": "apply",
+    "arguments": {
+      "process": {
+        "process_graph": {
+          "3": {
+		    "result": true,
+            "process_id": "multiply",
+            "arguments": {
+              "x": {
+                "from_parameter": "x"
+              },
+              "y": 0
+            }
+          }
+        }
+      },
+      "data": {
+        "from_node": "310"
+      }
+    }
+  },
+  "335": {
+      "process_id": "merge_cubes",
+      "arguments": {
+        "cube1": {
+          "from_node": "334"
+        },
+        "cube2": {
+          "from_node": "339"
+        },
+        "overlap_resolver": {
+          "process_graph": {
+            "1": {
+              "process_id": "add",
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": {
+                  "from_parameter": "y"
+                }
+              },
+              "result": true
+            }
+          },
+          "parameters": [
+            {
+              "name": "x",
+              "description": "",
+              "schema": {}
+            },
+            {
+              "name": "y",
+              "description": "",
+              "schema": {}
+            }
+          ]
+        }
+      }
+    },
+	"332": {
+    "process_id": "apply",
+    "arguments": {
+      "process": {
+        "process_graph": {
+          "2": {
+            "process_id": "lt",
+            "arguments": {
+              "x": {
+                "from_parameter": "x"
+              },
+              "y": 25
+            }
+          },
+          "3": {
+            "process_id": "gt",
+            "arguments": {
+              "x": {
+                "from_parameter": "x"
+              },
+              "y": 75
+            }
+          },
+          "4": {
+            "result": true,
+            "process_id": "or",
+            "arguments": {
+              "x": {
+                  "from_node": "2"
+                },
+			  "y": 
+                {
+                  "from_node": "3"
+                }              
+            }
+          }
+        }
+      },
+      "data": {
+        "from_node": "335"
+      }
+    }
+  },
+  "333": {
+    "process_id": "mask",
+    "arguments": {
+      "data": {
+        "from_node": "29"
+      },
+      "replacement": 3,
+      "mask": {
+        "from_node": "332"
+      }
+    }
+  },
     "28": {
       "process_id": "save_result",
       "arguments": {
         "data": {
-          "from_node": "29"
+          "from_node": "333"
         },
         "format": "JSON"
       },
@@ -647,3 +817,6 @@
     }
   }
  }
+}
+
+
