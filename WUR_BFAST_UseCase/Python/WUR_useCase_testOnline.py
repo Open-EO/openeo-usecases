@@ -10,7 +10,7 @@ my_pass = ''
 # connect to the backend:
 session = openeo.connect(DRIVER_URL).authenticate_basic(username=my_user, password=my_pass)
 
-s1 = session.load_collection("SENTINEL1_GAMMA0_SENTINELHUB",bands=["VV"])
+s1 = session.load_collection("SENTINEL1_GAMMA0_SENTINELHUB",bands=["VH"])
 s1_cube: DataCube = s1.filter_bbox(west=-54.8125,south=-3.5125,east=-54.8100,north=-3.5100)\
     .filter_temporal("2019-05-01", "2019-12-29")
 
@@ -33,8 +33,7 @@ polys = affinity.scale(polys, 1., 1.)
 extent = dict(zip(["west", "south", "east", "north"], polys.bounds))
 extent['crs'] = "EPSG:4326"
 
-s1_belgium = session.load_collection("S1_GRD_SIGMA0_ASCENDING", bands=["VV"])
-s1_belgium: DataCube = s1_belgium.filter_temporal("2016-01-01", "2020-12-29").filter_bbox(**extent)
+s1_belgium = session.load_collection("S1_GRD_SIGMA0_ASCENDING",spatial_extent=extent,temporal_extent=["2017-05-01", "2019-12-29"], bands=["VH"])
 
 # -------------------------------------
 #  functions to load the UDF code:
@@ -76,5 +75,6 @@ def test_run_udf_terrascope():
     S1_breaks = s1_belgium.reduce_temporal_udf(code=BFASTMonitor_breaks, runtime='Python')
 
     # download the results:
+    #print(S1_breaks.to_json())
     S1_breaks.download('BFASTmonitor_breaks_vito_backend.nc', format='NetCDF')
 
