@@ -19,15 +19,15 @@
         ],
         "id": "utm32n.openeo.strds.sentinel1_Sigma0_VH",
         "spatial_extent": {
-          "west": 16.06,
-          "south": 48.1,
-          "east": 16.65,
-          "north": 48.31,
+          "west": 3.75,
+          "south": 49.80,
+          "east": 8.07,
+          "north": 51.9,
           "crs": 4326
         },
         "temporal_extent": [
-          "2017-03-01",
-          "2017-04-01"
+          "2018-01-01",
+          "2018-04-01"
         ]
       },
       "description": "Loading Sentinel 1 data for VV and VH over Vienna in March 2017"
@@ -40,15 +40,15 @@
         ],
         "id": "utm32n.openeo.strds.sentinel1_Sigma0_VV",
         "spatial_extent": {
-          "west": 16.06,
-          "south": 48.1,
-          "east": 16.65,
-          "north": 48.31,
+          "west": 3.75,
+          "south": 49.80,
+          "east": 8.07,
+          "north": 51.9,
           "crs": 4326
         },
         "temporal_extent": [
-          "2017-03-01",
-          "2017-04-01"
+          "2018-01-01",
+          "2018-04-01"
         ]
       },
       "description": "Loading Sentinel 1 data for VV and VH over Vienna in March 2017"
