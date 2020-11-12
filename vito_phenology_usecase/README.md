@@ -1,4 +1,4 @@
-# Data fusion
+# Use Case 2: Multi-Source Phenology Toolbox
 
 This usecase demonstrates the pixel-wise extraction of start and end dates of a season using multiple data sources (Sentinel-1, 2 and ProbaV) in a single process.
 
