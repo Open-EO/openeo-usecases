@@ -7,7 +7,7 @@
           "VV",
           "VH"
         ],
-        "id": "sentinel1.GRD",
+        "id": "EarthObservation.Copernicus.Sentinel1.GRD",
         "spatial_extent": {
             "east": 16.65,
             "south": 48.1,
@@ -180,7 +180,7 @@
         "data": {
           "from_node": "mergecubes2"
         },
-        "format": "GTIFF-THUMB",
+        "format": "GTIFF",
         "options": {
           "red": "R",
           "green": "G",
