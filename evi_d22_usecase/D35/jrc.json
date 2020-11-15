@@ -158,7 +158,7 @@
         "data": {
           "from_node": "mintime"
         },
-        "format": "GTiff"
+        "format": "GTIFF"
       },
       "result": true
     }
