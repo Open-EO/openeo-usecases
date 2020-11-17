@@ -1,0 +1,466 @@
+{
+  "process_graph": {
+    "1": {
+      "arguments": {
+        "cube1": {
+          "from_node": "10"
+        },
+        "cube2": {
+          "from_node": "14"
+        },
+        "overlap_resolver": {
+          "process_graph": {
+            "1": {
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": {
+                  "from_parameter": "y"
+                }
+              },
+              "process_id": "subtract",
+              "result": true
+            }
+          }
+        }
+      },
+      "process_id": "merge_cubes"
+    },
+    "2": {
+      "arguments": {
+        "cube1": {
+          "from_node": "11"
+        },
+        "cube2": {
+          "from_node": "15"
+        },
+        "overlap_resolver": {
+          "process_graph": {
+            "1": {
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": {
+                  "from_parameter": "y"
+                }
+              },
+              "process_id": "subtract",
+              "result": true
+            }
+          }
+        }
+      },
+      "process_id": "merge_cubes"
+    },
+    "3": {
+      "arguments": {
+        "cube1": {
+          "from_node": "1"
+        },
+        "cube2": {
+          "from_node": "17"
+        },
+        "overlap_resolver": {
+          "process_graph": {
+            "1": {
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": {
+                  "from_parameter": "y"
+                }
+              },
+              "process_id": "multiply",
+              "result": true
+            }
+          }
+        }
+      },
+      "process_id": "merge_cubes"
+    },
+    "4": {
+      "arguments": {
+        "cube1": {
+          "from_node": "2"
+        },
+        "cube2": {
+          "from_node": "25"
+        },
+        "overlap_resolver": {
+          "process_graph": {
+            "1": {
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": {
+                  "from_parameter": "y"
+                }
+              },
+              "process_id": "multiply",
+              "result": true
+            }
+          }
+        }
+      },
+      "process_id": "merge_cubes"
+    },
+    "5": {
+      "arguments": {
+        "cube1": {
+          "from_node": "3"
+        },
+        "cube2": {
+          "from_node": "4"
+        },
+        "overlap_resolver": {
+          "process_graph": {
+            "1": {
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": {
+                  "from_parameter": "y"
+                }
+              },
+              "process_id": "add",
+              "result": true
+            }
+          }
+        }
+      },
+      "process_id": "merge_cubes"
+    },
+    "6": {
+      "arguments": {
+        "id": "S1_GRD_SIGMA0_ASCENDING",
+        "spatial_extent": {
+          "west": 11.790733337402342,
+          "south": 46.51635073507512,
+          "east": 12.33936309814453,
+          "north": 46.68807345686247
+        },
+        "temporal_extent": [
+          "2019-09-01T00:00:00Z",
+          "2020-09-19T23:59:59Z"
+        ]
+      },
+      "process_id": "load_collection"
+    },
+    "10": {
+      "arguments": {
+        "bands": [
+          "VH"
+        ],
+        "data": {
+          "from_node": "6"
+        }
+      },
+      "process_id": "filter_bands"
+    },
+    "11": {
+      "arguments": {
+        "bands": [
+          "VV"
+        ],
+        "data": {
+          "from_node": "6"
+        }
+      },
+      "process_id": "filter_bands"
+    },
+    "14": {
+      "arguments": {
+        "data": {
+          "from_node": "10"
+        },
+        "dimension": "t",
+        "reducer": {
+          "process_graph": {
+            "1": {
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                }
+              },
+              "process_id": "max",
+              "result": true
+            }
+          }
+        }
+      },
+      "process_id": "reduce_dimension"
+    },
+    "15": {
+      "arguments": {
+        "data": {
+          "from_node": "11"
+        },
+        "dimension": "t",
+        "reducer": {
+          "process_graph": {
+            "1": {
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                }
+              },
+              "process_id": "max",
+              "result": true
+            }
+          }
+        }
+      },
+      "process_id": "reduce_dimension"
+    },
+    "17": {
+      "arguments": {
+        "data": {
+          "from_node": "1016"
+        },
+        "process": {
+          "process_graph": {
+            "1": {
+              "arguments": {
+                "x": 45,
+                "y": {
+                  "from_parameter": "x"
+                }
+              },
+              "process_id": "subtract"
+            },
+            "2": {
+              "arguments": {
+                "x": 0.04,
+                "y": {
+                  "from_node": "1"
+                }
+              },
+              "process_id": "multiply"
+            },
+            "3": {
+              "arguments": {
+                "x": 1,
+                "y": {
+                  "from_node": "2"
+                }
+              },
+              "process_id": "add"
+            },
+            "4": {
+              "arguments": {
+                "x": 0.5,
+                "y": {
+                  "from_node": "3"
+                }
+              },
+              "process_id": "multiply"
+            },
+            "6": {
+              "arguments": {
+                "accept": 1,
+                "reject": {
+                  "from_node": "4"
+                },
+                "value": {
+                  "from_node": "7"
+                }
+              },
+              "process_id": "if"
+            },
+            "7": {
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": 20
+              },
+              "process_id": "lt"
+            },
+            "8": {
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": 45
+              },
+              "process_id": "gt"
+            },
+            "9": {
+              "arguments": {
+                "accept": 0.5,
+                "reject": {
+                  "from_node": "6"
+                },
+                "value": {
+                  "from_node": "8"
+                }
+              },
+              "process_id": "if",
+              "result": true
+            }
+          }
+        }
+      },
+      "process_id": "apply"
+    },
+    "25": {
+      "arguments": {
+        "data": {
+          "from_node": "17"
+        },
+        "process": {
+          "process_graph": {
+            "1": {
+              "arguments": {
+                "x": 1,
+                "y": {
+                  "from_parameter": "x"
+                }
+              },
+              "process_id": "subtract",
+              "result": true
+            }
+          }
+        }
+      },
+      "process_id": "apply"
+    },
+    "28": {
+      "arguments": {
+        "data": {
+          "from_node": "1014"
+        },
+        "format": "GTIFF"
+      },
+      "process_id": "save_result",
+      "result": true
+    },
+    "29": {
+      "arguments": {
+        "data": {
+          "from_node": "5"
+        },
+        "process": {
+          "process_graph": {
+            "1": {
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": -2
+              },
+              "process_id": "lt"
+            },
+            "2": {
+              "arguments": {
+                "accept": 1,
+                "reject": 2,
+                "value": {
+                  "from_node": "1"
+                }
+              },
+              "process_id": "if",
+              "result": true
+            }
+          }
+        }
+      },
+      "process_id": "apply"
+    },
+    "1009": {
+      "arguments": {
+        "bands": [
+          "angle"
+        ],
+        "data": {
+          "from_node": "6"
+        },
+        "wavelengths": []
+      },
+      "process_id": "filter_bands"
+    },
+    "1014": {
+      "process_id": "filter_temporal",
+      "arguments": {
+        "data": {
+          "from_node": "1015"
+        },
+        "extent": [
+          "2020-03-01T00:00:00Z",
+          "2020-03-08T23:59:59Z"
+        ]
+      }
+    },
+    "1015": {
+      "process_id": "apply",
+      "arguments": {
+        "data": {
+          "from_node": "29"
+        },
+        "process": {
+          "process_graph": {
+            "1": {
+              "process_id": "lt",
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": 25
+              }
+            },
+            "2": {
+              "process_id": "gt",
+              "arguments": {
+                "x": {
+                  "from_parameter": "x"
+                },
+                "y": 75
+              }
+            },
+            "3": {
+              "process_id": "and",
+              "arguments": {
+                "y": {
+                  "from_node": "2"
+                },
+                "x": {
+                  "from_node": "1"
+                }
+              }
+            },
+            "4": {
+              "process_id": "if",
+              "arguments": {
+                "value": {
+                  "from_node": "3"
+                },
+                "reject": {
+                  "from_parameter": "x"
+                },
+                "accept": 3
+              },
+              "result": true
+            }
+          }
+        }
+      }
+    },
+    "1016": {
+      "process_id": "filter_temporal",
+      "arguments": {
+        "data": {
+          "from_node": "1009"
+        },
+        "extent": [
+          "2020-03-01T00:00:00Z",
+          "2020-03-08T23:59:59Z"
+        ]
+      }
+    }
+  }
+}
