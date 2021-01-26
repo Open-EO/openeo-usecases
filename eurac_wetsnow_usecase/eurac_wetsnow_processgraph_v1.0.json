@@ -249,6 +249,16 @@
         }
       }
     },
+    "27": {
+      "process_id": "save_result",
+      "arguments": {
+        "data": {
+          "from_node": "WETSNOW_MAP"
+        },
+        "format": "NETCDF"
+      },
+      "result": true
+    },
     "WETSNOW_MAP": {
       "process_id": "mask",
       "arguments": {
@@ -260,16 +270,6 @@
         },
         "replacement": "NOSNOW"
       }
-    },
-    "27": {
-      "process_id": "save_result",
-      "arguments": {
-        "data": {
-          "from_node": "WETSNOW_MAP"
-        },
-        "format": "NETCDF"
-      },
-      "result": true
     },
     "LIA": {
       "process_id": "load_collection",
