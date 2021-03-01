@@ -18,7 +18,6 @@ eurac = connect(host = euracHost,
 
 # collection descritption ----
 eurac %>% describe_collection("openEO_S2_32632_10m_L2A_D22")
-eurac %>% describe_collection("openEO_WUR_UseCase")
 eurac %>% describe_collection("openEO_WUR_Usecase")
 list_udf_runtimes(eurac)
 
