@@ -1,11 +1,10 @@
 {
-    "process_graph":
-    {
+    "process_graph": {
         "dc": {
             "process_id": "load_collection",
             "description": "Loading the data; The order of the specified bands is important for the following reduce operation.",
             "arguments": {
-                "id": "S2MSI2A",
+                "id": "EarthObservation.Copernicus.Sentinel2.Level2A",
                 "spatial_extent": {
                     "west": 5.251809,
                     "east": 5.462144,
@@ -16,7 +15,11 @@
                     "2019-01-01T00:00:00.000Z",
                     "2020-01-01T00:00:00.000Z"
                 ],
-                "bands": ["B4","B8","SCL"],
+                "bands": [
+                    "B4",
+                    "B8",
+                    "SCL"
+                ],
                 "properties": {
                     "eo:cloud_cover": {
                         "process_graph": {
@@ -39,11 +42,11 @@
                                 "process_id": "eq",
                                 "arguments": {
                                     "x": {
-                                        "from_parameter":"value"
+                                        "from_parameter": "value"
                                     },
                                     "y": "31UFT"
                                 },
-                            	"result": true
+                                "result": true
                             }
                         }
                     }
@@ -92,7 +95,7 @@
                 },
                 "dimension": "bands"
             },
-        "description": "Compute the NDVI: (NIR - RED) / (NIR + RED)"
+            "description": "Compute the NDVI: (NIR - RED) / (NIR + RED)"
         },
         "cloudMask": {
             "process_id": "reduce_dimension",
@@ -137,24 +140,15 @@
                     "from_node": "cloudMask"
                 },
                 "replacement": 0
-            },
-            "result": true
-        },
-        "savgolay": {
-            "process_id": "run_udf",
-            "arguments": {
-                "data": {"from_node": "maskedNdvi"},
-                "runtime": "Python",
-                "version": "latest",
-                "udf": "def savgolay(jim):\n  jim.ngbops.smoothNoData1d(0,interp='linear')\n  nplane=jim.properties.nrOfPlane()\n  nl=min(7,(nplane-1)/2)\n  nr=min(7,(nplane-1)/2)\n  savgol=Cube(pj.ngbops.savgolay(jim, nl=nl, nr=nr, m=2, pad='replicate'))\n  for loop in range(0,4):\n    savgol.pixops.convert(otype=jim.properties.getDataType())\n    savgol[savgol<jim]=jim\n    nl=min(4,(nplane-1)/2)\n    nr=min(4,(nplane-1)/2)\n    m=min(6,nl+nr-1)\n    savgol=Cube(pj.ngbops.savgolay(savgol, nl=nl, nr=nr, m=m, pad='replicate'))\n  savgol.dimension=jim.dimension\n  return savgol"
-            },
-            "result": true
+            }
         },
         "aggreg1": {
             "process_id": "aggregate_spatial",
             "description": "aggregate spatial using mean value",
             "arguments": {
-                "data": {"from_node": "savgolay"},
+                "data": {
+                    "from_node": "maskedNdvi"
+                },
                 "geometries": {
                     "type": "file",
                     "path": "BRP_Gewaspercelen_2017.gdb"
@@ -168,7 +162,9 @@
                         "mean": {
                             "process_id": "mean",
                             "arguments": {
-                                "data": {"from_parameter": "data"}
+                                "data": {
+                                    "from_parameter": "data"
+                                }
                             },
                             "result": true
                         }
@@ -179,7 +175,9 @@
         "save": {
             "process_id": "save_result",
             "arguments": {
-                "data": {"from_node": "aggreg1"},
+                "data": {
+                    "from_node": "aggreg1"
+                },
                 "format": "JSON"
             },
             "result": true

@@ -1,0 +1,336 @@
+{
+	"process_graph": {
+	  "aggreg1": {
+		"arguments": {
+		  "data": {
+			"from_node": "maskedNdvi"
+		  },
+		  "geometries": [
+			{
+			  "coordinates": [
+				[
+				  [
+					[
+					  5.411981037710379,
+					  51.77826844929142
+					],
+					[
+					  5.410311365073025,
+					  51.78204893887008
+					],
+					[
+					  5.410365894225126,
+					  51.7820508268366
+					],
+					[
+					  5.41099855023923,
+					  51.782066157094654
+					],
+					[
+					  5.411362820841147,
+					  51.78208511055784
+					],
+					[
+					  5.411853611189928,
+					  51.78211830078446
+					],
+					[
+					  5.412486277104072,
+					  51.78215502665334
+					],
+					[
+					  5.412979094020527,
+					  51.782181524357
+					],
+					[
+					  5.414796665178152,
+					  51.77842431378961
+					],
+					[
+					  5.414801893169995,
+					  51.77841347477833
+					],
+					[
+					  5.413145673613536,
+					  51.77832839341045
+					],
+					[
+					  5.413145474364355,
+					  51.77832838221925
+					],
+					[
+					  5.411981037710379,
+					  51.77826844929142
+					]
+				  ]
+				]
+			  ],
+			  "type": "MultiPolygon"
+			},
+			{
+			  "coordinates": [
+				[
+				  [
+					[
+					  5.403030493091271,
+					  51.779309251207884
+					],
+					[
+					  5.403253491882621,
+					  51.77878918727358
+					],
+					[
+					  5.403665529280184,
+					  51.77882640450316
+					],
+					[
+					  5.404020355984187,
+					  51.778856518753116
+					],
+					[
+					  5.40429933822189,
+					  51.77888310168496
+					],
+					[
+					  5.404449425885471,
+					  51.77853076985722
+					],
+					[
+					  5.404692396011384,
+					  51.77792372832853
+					],
+					[
+					  5.40476814572752,
+					  51.77772581910136
+					],
+					[
+					  5.404712356078463,
+					  51.777719616532444
+					],
+					[
+					  5.40428742624264,
+					  51.77766820318809
+					],
+					[
+					  5.403775251518584,
+					  51.77761503007177
+					],
+					[
+					  5.403198679718076,
+					  51.777550331481464
+					],
+					[
+					  5.402762320501346,
+					  51.77749891418456
+					],
+					[
+					  5.402535150688142,
+					  51.777474756616144
+					],
+					[
+					  5.401159334271764,
+					  51.781286419512924
+					],
+					[
+					  5.401571847501677,
+					  51.7813407849217
+					],
+					[
+					  5.401945290277271,
+					  51.78138689350766
+					],
+					[
+					  5.402145599390299,
+					  51.78141526224667
+					],
+					[
+					  5.402157040435058,
+					  51.78139395825196
+					],
+					[
+					  5.402490125939062,
+					  51.78059433323899
+					],
+					[
+					  5.402773175220008,
+					  51.77991363055224
+					],
+					[
+					  5.403030493091271,
+					  51.779309251207884
+					]
+				  ]
+				]
+			  ],
+			  "type": "MultiPolygon"
+			},
+			{
+			  "coordinates": [
+				[
+				  [
+					[
+					  5.31586485314444,
+					  51.82972647488719
+					],
+					[
+					  5.315687073218094,
+					  51.83031013710629
+					],
+					[
+					  5.316119544419471,
+					  51.830280170269354
+					],
+					[
+					  5.316269774444226,
+					  51.82976641907913
+					],
+					[
+					  5.31586485314444,
+					  51.82972647488719
+					]
+				  ]
+				]
+			  ],
+			  "type": "MultiPolygon"
+			}
+		  ],
+		  "reducer": {
+			"process_graph": {
+			  "mean": {
+				"arguments": {
+				  "data": {
+					"from_parameter": "data"
+				  }
+				},
+				"process_id": "mean",
+				"result": true
+			  }
+			}
+		  }
+		},
+		"description": "aggregate spatial using mean value",
+		"process_id": "aggregate_spatial"
+	  },
+	  "cloudMask": {
+		"arguments": {
+		  "data": {
+			"from_node": "dc"
+		  },
+		  "dimension": "band",
+		  "reducer": {
+			"process_graph": {
+			  "eq1": {
+				"arguments": {
+				  "x": {
+					"from_node": "scl"
+				  },
+				  "y": 4
+				},
+				"process_id": "neq",
+				"result": true
+			  },
+			  "scl": {
+				"arguments": {
+				  "data": {
+					"from_parameter": "data"
+				  },
+				  "label": "SCL"
+				},
+				"process_id": "array_element"
+			  }
+			}
+		  }
+		},
+		"description": "Scene classification mask",
+		"process_id": "reduce_dimension"
+	  },
+	  "dc": {
+		"arguments": {
+		  "bands": [
+			"B04",
+			"B08",
+			"SCL"
+		  ],
+		  "id": "S2L2A",
+		  "spatial_extent": {
+			"east": 5.462144,
+			"north": 51.718069,
+			"south": 51.805835,
+			"west": 5.351809
+		  },
+		  "temporal_extent": [
+			"2019-12-01T00:00:00.000Z",
+			"2020-01-01T00:00:00.000Z"
+		  ]
+		},
+		"description": "Loading the data; The order of the specified bands is important for the following reduce operation.",
+		"process_id": "load_collection"
+	  },
+	  "maskedNdvi": {
+		"arguments": {
+		  "data": {
+			"from_node": "ndvi"
+		  },
+		  "mask": {
+			"from_node": "cloudMask"
+		  },
+		  "replacement": 0
+		},
+		"process_id": "mask"
+	  },
+	  "ndvi": {
+		"arguments": {
+		  "data": {
+			"from_node": "dc"
+		  },
+		  "dimension": "band",
+		  "reducer": {
+			"process_graph": {
+			  "ndvi": {
+				"arguments": {
+				  "x": {
+					"from_node": "nir"
+				  },
+				  "y": {
+					"from_node": "red"
+				  }
+				},
+				"process_id": "normalized_difference",
+				"result": true
+			  },
+			  "nir": {
+				"arguments": {
+				  "data": {
+					"from_parameter": "data"
+				  },
+				  "label": "B08"
+				},
+				"process_id": "array_element"
+			  },
+			  "red": {
+				"arguments": {
+				  "data": {
+					"from_parameter": "data"
+				  },
+				  "label": "B04"
+				},
+				"process_id": "array_element"
+			  }
+			}
+		  }
+		},
+		"description": "Compute the NDVI: (NIR - RED) / (NIR + RED)",
+		"process_id": "reduce_dimension"
+	  },
+	  "save": {
+		"arguments": {
+		  "data": {
+			"from_node": "aggreg1"
+		  },
+		  "format": "json"
+		},
+		"process_id": "save_result",
+		"result": true
+	  }
+	}
+  }

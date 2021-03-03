@@ -1,6 +1,5 @@
 from bfast import BFASTMonitor
 from bfast.utils import crop_data_dates
-from datetime import datetime
 import xarray as xr
 import pandas as pd
 import numpy as np
@@ -13,10 +12,13 @@ def apply_datacube(udf_cube: DataCube,context:dict) -> DataCube:
     :param udf_cube: the openEO virtual DataCube object 
     :return DataCube(breaks_xr):
     """
+    from datetime import datetime
     # convert the openEO datacube into the xarray DataArray structure
     my_xarray: xr.DataArray = udf_cube.get_array()
+    #select single band, removes band dimension
+    my_xarray = my_xarray.sel(bands='VV')
     #
-    start_hist = datetime(2016, 12, 31)
+    start_hist = datetime(2017, 5, 1)
     start_monitor = datetime(2019, 1, 1)
     end_monitor = datetime(2019, 12, 29)
     # get the dates from the data cube:
@@ -42,8 +44,8 @@ def apply_datacube(udf_cube: DataCube,context:dict) -> DataCube:
     model.fit(data, dates)
     # get the detected breaks as an xarray Data Array:
     breaks_xr = xr.DataArray(model.breaks,
-                             coords=[my_xarray.coords['y'].values, my_xarray.coords['x'].values],
-                             dims=['y', 'x'])
+                             coords=[my_xarray.coords['x'].values, my_xarray.coords['y'].values],
+                             dims=['x', 'y'])
     # return the breaks as openEO DataCube:
     return DataCube(breaks_xr)
 

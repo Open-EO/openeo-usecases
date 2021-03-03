@@ -1,0 +1,197 @@
+{
+  "process_graph": {
+    "march": {
+      "arguments": {
+        "id": "SIG0",
+        "spatial_extent": {
+          "west": 16.06,
+          "south": 48.06,
+          "east": 16.65,
+          "north": 48.35
+        },
+        "bands": [
+          "VV"
+        ],
+        "temporal_extent": [
+          "2017-03-01",
+          "2017-03-03"
+        ]
+      },
+      "process_id": "load_collection"
+    },
+    "april": {
+      "arguments": {
+        "id": "SIG0",
+        "spatial_extent": {
+          "west": 16.06,
+          "south": 48.06,
+          "east": 16.65,
+          "north": 48.35
+        },
+        "bands": [
+          "VV"
+        ],
+        "temporal_extent": [
+          "2017-04-01",
+          "2017-04-03"
+        ]
+      },
+      "process_id": "load_collection"
+    },
+    "may": {
+      "arguments": {
+        "id": "SIG0",
+        "spatial_extent": {
+          "west": 16.06,
+          "south": 48.06,
+          "east": 16.65,
+          "north": 48.35
+        },
+        "bands": [
+          "VV"
+        ],
+        "temporal_extent": [
+          "2017-05-01",
+          "2017-05-03"
+        ]
+      },
+      "process_id": "load_collection"
+    },
+    "mean_march": {
+      "arguments": {
+        "data": {
+          "from_node": "march"
+        },
+        "dimension": "t",
+        "reducer": {
+          "process_graph": {
+            "mean": {
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                }
+              },
+              "process_id": "mean",
+              "result": true
+            }
+          }
+        }
+      },
+      "process_id": "reduce_dimension"
+    },
+    "mean_april": {
+      "arguments": {
+        "data": {
+          "from_node": "april"
+        },
+        "dimension": "t",
+        "reducer": {
+          "process_graph": {
+            "mean": {
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                }
+              },
+              "process_id": "mean",
+              "result": true
+            }
+          }
+        }
+      },
+      "process_id": "reduce_dimension"
+    },
+    "mean_may": {
+      "arguments": {
+        "data": {
+          "from_node": "may"
+        },
+        "dimension": "t",
+        "reducer": {
+          "process_graph": {
+            "mean": {
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                }
+              },
+              "process_id": "mean",
+              "result": true
+            }
+          }
+        }
+      },
+      "process_id": "reduce_dimension"
+    },
+    "add_dim_R": {
+      "arguments": {
+        "data": {
+          "from_node": "mean_march"
+        },
+        "name": "bands",
+        "label": "R",
+        "type": "bands"
+      },
+      "process_id": "add_dimension"
+    },
+    "add_dim_G": {
+      "arguments": {
+        "data": {
+          "from_node": "mean_april"
+        },
+        "name": "bands",
+        "label": "G",
+        "type": "bands"
+      },
+      "process_id": "add_dimension"
+    },
+    "add_dim_B": {
+      "arguments": {
+        "data": {
+          "from_node": "mean_may"
+        },
+        "name": "bands",
+        "label": "B",
+        "type": "bands"
+      },
+      "process_id": "add_dimension"
+    },
+    "RG": {
+      "arguments": {
+        "cube1": {
+          "from_node": "add_dim_R"
+        },
+        "cube2": {
+          "from_node": "add_dim_G"
+        }
+      },
+      "process_id": "merge_cubes"
+    },
+    "RGB": {
+      "arguments": {
+        "cube1": {
+          "from_node": "RG"
+        },
+        "cube2": {
+          "from_node": "add_dim_B"
+        }
+      },
+      "process_id": "merge_cubes"
+    },
+    "save_result": {
+      "arguments": {
+        "data": {
+          "from_node": "RGB"
+        },
+        "format": "GTiff",
+        "options": {
+          "red": "R",
+          "green": "G",
+          "blue": "B"
+        }
+      },
+      "process_id": "save_result",
+      "result": true
+    }
+  }
+}

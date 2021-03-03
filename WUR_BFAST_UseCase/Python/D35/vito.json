@@ -1,0 +1,61 @@
+{
+  "process_graph": {
+    "loadcollection1": {
+      "process_id": "load_collection",
+      "arguments": {
+        "temporal_extent": [
+          "2017-05-01",
+          "2019-12-29"
+        ],
+        "spatial_extent": {
+          "west": 5.008769,
+          "south": 51.218417,
+          "east": 5.023449,
+          "north": 51.227135,
+          "crs": "EPSG:4326"
+        },
+        "id": "S1_GRD_SIGMA0_ASCENDING",
+        "bands": [
+          "VH"
+        ]
+      }
+    },
+    "reducedimension1": {
+      "process_id": "reduce_dimension",
+      "arguments": {
+        "data": {
+          "from_node": "loadcollection1"
+        },
+        "dimension": "t",
+        "reducer": {
+          "process_graph": {
+            "runudf1": {
+              "process_id": "run_udf",
+              "arguments": {
+                "data": {
+                  "from_parameter": "data"
+                },
+                "runtime": "Python",
+                "udf": "from bfast import BFASTMonitor\nfrom bfast.utils import crop_data_dates\nimport xarray as xr\nimport pandas as pd\nimport numpy as np\nfrom openeo_udf.api.datacube import DataCube\n\ndef apply_datacube(udf_cube: DataCube,context:dict) -> DataCube:\n    \"\"\"\n    Apply the BFASTmonitor method to detect a break at the end of time-series of the datacube.\n    This UDF reduce the time dimension of the input datacube. \n    :param udf_cube: the openEO virtual DataCube object \n    :return DataCube(breaks_xr):\n    \"\"\"\n    from datetime import datetime\n    # convert the openEO datacube into the xarray DataArray structure\n    my_xarray: xr.DataArray = udf_cube.get_array()\n    #select single band, removes band dimension\n    my_xarray = my_xarray.sel(bands='VV')\n    #\n    start_hist = datetime(2016, 12, 31)\n    start_monitor = datetime(2019, 1, 1)\n    end_monitor = datetime(2019, 12, 29)\n    # get the dates from the data cube:\n    dates = [pd.Timestamp(date).to_pydatetime() for date in my_xarray.coords['t'].values]\n    # pre-processing - crop the input data cube according to the history and monitor periods:\n    data, dates = crop_data_dates(my_xarray.values, dates, start_hist, end_monitor)\n    # !!! Note !!! that data has the shape 91, and not 92 for our dataset. The reason is the definition in\n    # the bfast utils.py script where the start_hist is set < than dates, and not <= than dates.\n    # -------------------------------------\n    # specify the BFASTmonitor parameters:\n    model = BFASTMonitor(\n        start_monitor,\n        freq=31,\n        k=3,\n        verbose=1,\n        hfrac=0.25,\n        trend=True,\n        level=0.05,\n        backend='python'\n    )\n    # run the monitoring:\n    # model.fit(data, dates, nan_value=udf_data.nodatavals[0])\n    model.fit(data, dates)\n    # get the detected breaks as an xarray Data Array:\n    breaks_xr = xr.DataArray(model.breaks,\n                             coords=[my_xarray.coords['x'].values, my_xarray.coords['y'].values],\n                             dims=['x', 'y'])\n    # return the breaks as openEO DataCube:\n    return DataCube(breaks_xr)\n\n\n\n",
+                "version": "latest"
+              },
+              "result": true
+            }
+          }
+        }
+      },
+      "result": false
+    },
+    "save_result_DBYBA8933V": {
+      "process_id": "save_result",
+      "arguments": {
+        "data": {
+          "from_node": "reducedimension1"
+        },
+        "format": "NETCDF",
+        "options": {}
+      },
+      "result": true
+    }
+  }
+}

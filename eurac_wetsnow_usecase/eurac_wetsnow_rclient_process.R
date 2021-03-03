@@ -1,4 +1,4 @@
-# test r-udf with r-client and eurac backend
+# Eurac Wet Snow Use Case - Eurac Backend
 
 # libraries --------------------------------------------------------------------
 #devtools::install_github(repo="Open-EO/openeo-r-client",ref="develop",dependencies=TRUE)
@@ -28,16 +28,9 @@ conn = connect(host = driver_url,
 
 
 # get some descriptions of eurac backend ---------------------------------------
-#conn %>% openeo::list_collections()
-conn %>% describe_collection("Backscatter_Sentinel1_Track015")
-conn %>% describe_collection("LIA_Sentinel1_Track015")
-
-#conn %>% list_processes()
-conn %>% describe_process("filter_bands")
-conn %>% describe_process("reduce")
-
-# process_viewer()
-# collection_viewer()
+describe_collection("Backscatter_Sentinel1_Track015_Regular_Timeseries_Tiled_1000")
+describe_collection("LIA_Sentinel1_Track015_Ingested")
+describe_collection("EURAC_SNOW_CLOUDREMOVAL_MODIS_ALPS_LAEA")
 
 # process graph ----------------------------------------------------------------
 # define an spatial extent
@@ -48,14 +41,16 @@ aoi = list("west" = 10.570392608642578,
            "north" = 46.85244345762143)
 
 # define an temporal extent
-timespan = c("2014-11-01T00:00:00.000Z",   
-             "2015-05-01T00:00:00.000Z")
+timespan = c("2015-11-06T00:00:00.000Z",   
+             "2016-09-25T00:00:00.000Z")
+timespan = c("2015-01-28T00:00:00.000Z",   
+             "2016-01-28T00:00:00.000Z")
 
 # get processes available on backend
 p = processes()
 
 # load data cube, filter temporally and spatially ------------------------------
-s1a = p$load_collection(id = p$data$Backscatter_Sentinel1_Track015, 
+s1a = p$load_collection(id = "Backscatter_Sentinel1_Track015_Regular_Timeseries_Tiled_1000", 
                         temporal_extent = timespan, 
                         spatial_extent = aoi , bands = c("VV", "VH")) 
                         # bands = "VV") #c("VV", "VH")
@@ -65,18 +60,28 @@ s1a = p$load_collection(id = p$data$Backscatter_Sentinel1_Track015,
 vv = p$filter_bands(data = s1a, bands = "VV")
 vh = p$filter_bands(data = s1a, bands = "VH")
 
-# apply temporal mean to each polarization 
-# vv_mean = p$min_time(data = vv)
-# vh_mean = p$min_time(data = vh)
+# apply temporal min to each polarization
+vv_min = p$reduce_dimension(data = vv, dimension = "temporal", reducer = function(x, context) {p$min(x)})
+vh_min = p$reduce_dimension(data = vh, dimension = "temporal", reducer = function(x, context) {p$min(x)})
 
-# try to replicate reduce/temporal/mean??? -> hot to enter the reducer?
-vv_mean = p$reduce(data = vv, dimension = "temporal", reducer = p$mean)# reducer = function(x){mean(x)})
-vh_mean = p$reduce(data = vh, dimension = "temporal", reducer = p$mean)# reducer = function(x){mean(x)})
+int_result = p$save_result(data = vv_min, format = "json")
+graph = as(int_result, "Graph")
+graph
+graph$validate()
 
+(resultfile = compute_result(graph = graph, format="json", output_file = "int_result.json"))
+job_id = create_job(con = conn,
+                    graph = graph,
+                    title = "intres",
+                    description = "itnres")
+job_id
+start_job(job_id$id, con = conn)
+done = download_results(job = job_id, folder = ".")
+done
 
 # merge cubes for intermediate result: -> how to enter the overlap resolver?
-int_result = p$merge_cubes(cube2 = vv_mean, cube1 = vh_mean, overlap_resolver = p$mean)
-
+int_result = p$merge_cubes(cube2 = vv_min, cube1 = vh_min, overlap_resolver = function(x, context) {p$mean(x)})
+int_result = p$merge_cubes(cube1 = vh_min, cube2 = vv_min, overlap_resolver = function(x, context) {p$min(x)})
 # save result
 result = p$save_result(data = vv_mean, format = "GTIFF")
 
