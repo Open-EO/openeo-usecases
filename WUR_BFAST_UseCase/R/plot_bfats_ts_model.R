@@ -15,7 +15,6 @@ ts1 = c(extract(x_brick, df1))
 lsts = ts(ts1, c(2017, 1), frequency=30.666667)
 plot(lsts)
 #
-model1 = bfastmonitor(lsts, 2018, formula=response~trend+harmon, order= 1, history="all")
+model1 = bfastmonitor(lsts, 2018, formula=response~harmon, order= 1, history="all")
 plot(model1)
-
 

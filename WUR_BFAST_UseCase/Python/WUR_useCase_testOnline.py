@@ -74,4 +74,3 @@ def test_run_udf():
 
     # download the results:
     S1_breaks.download('BFASTmonitor_breaks_vito_backend.nc', format='NetCDF')
-
