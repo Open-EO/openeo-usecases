@@ -46,3 +46,11 @@ vignettes/*.pdf
 
 # ignore tif files
 *.tif
+*.tiff
+
+# ignore png files:
+*.png
+
+# ignore netCDF
+*.nc
+*.netcdf
