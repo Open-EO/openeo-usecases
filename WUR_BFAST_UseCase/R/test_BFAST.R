@@ -10,6 +10,7 @@ remotes::install_github(repo="Open-EO/openeo-r-client@develop",dependencies=TRUE
 library(openeo)
 
 
+
 # enter valid credentials
 euracHost = "https://openeo.eurac.edu"
 #
