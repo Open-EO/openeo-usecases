@@ -13,6 +13,7 @@ SpatialBFM = function(pixels)
   lsts = ts(pixels, c(2017, 1), frequency=30.666667)
   bfastmonitor(lsts, 2019, formula=response~trend)$breakpoint
 }
+
 # either use adrop() to drop the band dimension... or include here to reduce.
 #StarsResult = st_apply(x, c("x", "y", "band"), SpatialBFM, PROGRESS=TRUE)
 StarsResult = st_apply(x, c("x", "y"), SpatialBFM, PROGRESS=TRUE)

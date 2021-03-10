@@ -115,8 +115,8 @@ print(outRast)
 #onLineRaster = raster("c591e025-3022-4e84-959d-22bdbabf23df.tiff")
 onLineRaster = raster("data.tiff")
 onLineRaster[onLineRaster==-9999] = NA
-#offLineRaster = raster("offline_bfast_output_v2.tif")
-offLineRaster = raster("offline_bfast_output_largeArea.tif")
+offLineRaster = raster("offline_bfast_output_v2.tif")
+#offLineRaster = raster("offline_bfast_output_largeArea.tif")
 
 # convert to bw ratser:
 offLineRaster_bw = offLineRaster
@@ -166,8 +166,6 @@ plot(onLineRaster,
      col=inferno(12), zlim=c(2019,2020))
 plot(offLineRaster2,
      col=inferno(12), zlim=c(2019,2020))
-
-
 
 
 # ---------------------------------------------------------------
