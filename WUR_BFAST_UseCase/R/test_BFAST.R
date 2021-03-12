@@ -9,17 +9,31 @@ remotes::install_github(repo="Open-EO/openeo-r-client@develop",dependencies=TRUE
 
 library(openeo)
 
-
+# basic login (disabled) ----
 # enter valid credentials
+# euracHost = "https://openeo.eurac.edu"
+#user = ""
+#password = ""
+#api_versions(url=euracHost)
+#eurac = connect(host = euracHost, user = user, password = password, login_type = "basic")
+
+# oidc login (activated) ----
 euracHost = "https://openeo.eurac.edu"
-#
-user = ""
-password = ""
-
 api_versions(url=euracHost)
+conf = list(client_id = "CONTACT EURAC", secret = "CONTACT EURAC")
+eurac = connect(host = euracHost)
+prov = list_oidc_providers()
+prov$Eurac_EDP_Keycloak
 
+eurac$isConnected()
+eurac$isLoggedIn()
 
-eurac = connect(host = euracHost, user = user, password = password, login_type = "basic")
+eurac$login(login_type = "oidc", 
+            provider = prov$Eurac_EDP_Keycloak, 
+            config = conf)
+
+eurac$isLoggedIn()
+
 
 #eurac = connect(host = euracHost, version="1.0.0", user = user, password = password, login_type = "basic")
 # eurac = connect(host = euracHost)
