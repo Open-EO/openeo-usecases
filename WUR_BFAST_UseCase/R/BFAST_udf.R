@@ -39,6 +39,16 @@ values(raster_out_bw_filt) = raster_out_bw_filt_mat
 
 # multiply the original output with the bw mask and save locally:
 raster_out_filt = raster_out*raster_out_bw_filt
+
+# there are some parts missing for this function to work in the UDF Service as currently defined:
+# - convert the raster object to a stars object
+raster_out_filt = st_as_stars(raster_out_filt, att = 1, ignore_file = FALSE)
+# - make sure no NA values are in the file
+raster_out_filt[is.na(raster_out_filt)] <- -9999 # this value can be chosen differently
+# - make sure the file has a valid projection (this was the last error we haven't resolved yet)
+# still to be checked where the crs is lost. When ingesting the json data transfer file back into rasdaman the epsg field is empty "".
+# st_crs(raster_out_filt)
+
 # the final output raster:
 raster_out_filt
 
