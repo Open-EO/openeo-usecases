@@ -1,20 +1,34 @@
 library(openeo)
 library(magrittr)
 
-# login info ----
-euracHost = "https://openeo.eurac.edu"
+# basic login (disabled) ----
+#euracHost = "https://openeo.eurac.edu"
 #httr::set_config(httr::config(ssl_verifypeer = 0L))
 #httr::set_config(httr::config(ssl_verifyhost= 0L))
+#user = ""
+#password = ""
+#api_versions(url=euracHost)
+#eurac = connect(host = euracHost, 
+#                user = user, 
+#                password = password, 
+#                login_type = "basic")
 
-user = ""
-password = ""
+# oidc login (active) ----
+euracHost = "https://openeo.eurac.edu"
 api_versions(url=euracHost)
+conf = list(client_id = "CONTACT EURAC", secret = "CONTACT EURAC")
+eurac = connect(host = euracHost)
+prov = list_oidc_providers()
+prov$Eurac_EDP_Keycloak
 
-# login ----
-eurac = connect(host = euracHost, 
-                user = user, 
-                password = password, 
-                login_type = "basic")
+eurac$isConnected()
+eurac$isLoggedIn()
+
+eurac$login(login_type = "oidc", 
+            provider = prov$Eurac_EDP_Keycloak, 
+            config = conf)
+
+eurac$isLoggedIn()
 
 # collection descritption ----
 eurac %>% describe_collection("openEO_S2_32632_10m_L2A_D22")
